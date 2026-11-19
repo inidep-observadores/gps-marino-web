@@ -108,7 +108,7 @@ const stale = computed(() => !!store.data && Date.now() - store.data.fetchedAt >
 
       <section class="panel-section gap-2">
         <h3 class="eyebrow">{{ t('pointForecast.windChart') }}</h3>
-        <HourlyChart v-model:selected="selected" :hours="hours" :lines="windLines" :bands="bands" :min-max="20" unit="kn" :now-ms="now" :label="t('pointForecast.windChart')" />
+        <HourlyChart v-model:selected="selected" :hours="hours" :lines="windLines" :bands="bands" :min-max="20" :unit="t('units.kn')" :now-ms="now" :label="t('pointForecast.windChart')" />
         <p class="text-caption flex gap-3">
           <span class="flex items-center gap-1.5"><span class="h-0.5 w-4 rounded bg-accent"></span>{{ t('pointForecast.wind') }}</span>
           <span class="flex items-center gap-1.5"><span class="h-0.5 w-4 rounded border-t-2 border-dashed border-caution"></span>{{ t('pointForecast.gusts') }}</span>
@@ -117,7 +117,7 @@ const stale = computed(() => !!store.data && Date.now() - store.data.fetchedAt >
 
       <section v-if="store.data.hasWaves" class="panel-section gap-2">
         <h3 class="eyebrow">{{ t('pointForecast.waveChart') }}</h3>
-        <HourlyChart v-model:selected="selected" :hours="hours" :lines="waveLines" :min-max="2" unit="m" :now-ms="now" :label="t('pointForecast.waveChart')" />
+        <HourlyChart v-model:selected="selected" :hours="hours" :lines="waveLines" :min-max="2" :unit="t('units.m')" :now-ms="now" :label="t('pointForecast.waveChart')" />
         <p class="text-caption flex gap-3">
           <span class="flex items-center gap-1.5"><span class="h-0.5 w-4 rounded bg-accent"></span>{{ t('pointForecast.waves') }}</span>
           <span class="flex items-center gap-1.5"><span class="h-0.5 w-4 rounded border-t-2 border-dashed border-go"></span>{{ t('pointForecast.swell') }}</span>

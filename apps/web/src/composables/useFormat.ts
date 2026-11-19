@@ -1,5 +1,5 @@
 import { useI18n } from 'vue-i18n'
-import { formatBearing, formatLat, formatLon } from '@gpsm/shared'
+import { EMPTY_LAT, EMPTY_LON, formatBearing, formatLat, formatLon } from '@gpsm/shared'
 
 /** Formatos de pantalla según el idioma. Los valores internos nunca se guardan formateados. */
 export function useFormat() {
@@ -8,9 +8,12 @@ export function useFormat() {
   const num = (v: number, digits: number) =>
     new Intl.NumberFormat(locale.value, { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(v)
 
+  /** Separador decimal de los minutos: coma en español (como la app original) y punto en inglés. */
+  const decimal = () => (new Intl.NumberFormat(locale.value).format(1.1).includes(',') ? ',' : '.')
+
   return {
-    lat: (v: number | null | undefined) => formatLat(v),
-    lon: (v: number | null | undefined) => formatLon(v, { west: t('units.west') }),
+    lat: (v: number | null | undefined) => (v == null ? EMPTY_LAT.replace(',', decimal()) : formatLat(v, { decimal: decimal() })),
+    lon: (v: number | null | undefined) => (v == null ? EMPTY_LON.replace(',', decimal()) : formatLon(v, { west: t('units.west'), decimal: decimal() })),
     bearing: (v: number | null | undefined) => formatBearing(v),
     /** Nudos con un decimal (sin unidad). */
     speed: (kn: number | null | undefined) => (kn == null ? '--' : num(kn, 1)),

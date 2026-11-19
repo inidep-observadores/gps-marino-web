@@ -145,7 +145,7 @@ const featureCount = (l: ImportedLayer) => layers.importedParsed.get(l.id)?.feat
           <span class="flex min-w-0 flex-1 flex-col">
             <span class="truncate text-sm font-semibold" :class="{ 'text-ink-subtle': !tr.visible }">{{ tr.name }}</span>
             <span class="numeric text-xs text-ink-subtle">
-              <template v-if="tracks.recording?.id === tr.id">● {{ t('tracks.recording') }} · </template>{{ tr.distanceNm.toFixed(2) }} {{ t('units.nm') }} · {{ duration(tr.startedAt, tr.endedAt) }} · {{ t('tracks.points', tr.pointCount) }}
+              <template v-if="tracks.recording?.id === tr.id">● {{ t('tracks.recording') }} · </template>{{ f.distance(tr.distanceNm) }} {{ t('units.nm') }} · {{ duration(tr.startedAt, tr.endedAt) }} · {{ t('tracks.points', tr.pointCount) }}
             </span>
           </span>
           <button type="button" class="icon-btn" :aria-pressed="tr.visible" :aria-label="t(tr.visible ? 'layers.hideLayer' : 'layers.showLayer', { name: tr.name })" @click="tracks.setVisible(tr.id, !tr.visible)">

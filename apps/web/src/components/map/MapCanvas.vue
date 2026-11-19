@@ -15,7 +15,6 @@ import {
   addProtocol,
   AttributionControl,
   Map as MapLibre,
-  ScaleControl,
   setWorkerUrl,
   type GeoJSONSource,
   type StyleSpecification,
@@ -45,6 +44,7 @@ import { useWindStore } from '@/stores/wind'
 import { syncVectorLayers, tappableLayerIds } from './mapLayers'
 import { markImage, vesselImage, vesselStillImage } from './mapImages'
 import { GLYPHS, LABEL_FONT, LABEL_FONT_BOLD, SEAMARKS_ATTR, SEAMARKS_TILES, palette, rasterBaseStyle, type Palette } from './mapStyles'
+import { NauticalScaleControl } from './nauticalScale'
 import { WindBarbs } from './windBarbs'
 import { WindParticles } from './windParticles'
 import { OFM_PROTOCOL, loadStandardStyle, ofmTileHandler, trimTileCache } from './offlineTiles'
@@ -53,7 +53,7 @@ setWorkerUrl(mapWorkerUrl)
 // Teselas vectoriales con caché propio sin versión en la clave (ver offlineTiles.ts).
 addProtocol(OFM_PROTOCOL, ofmTileHandler)
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const theme = useTheme()
 const gps = useGpsStore()
 const mapStore = useMapStore()
@@ -73,6 +73,7 @@ let observer: ResizeObserver | null = null
 /** Partículas de la capa de viento (canvas encima del mapa). */
 let particles: WindParticles | null = null
 let barbs: WindBarbs | null = null
+let scaleControl: NauticalScaleControl | null = null
 /**
  * Las capas propias ya están armadas sobre el estilo actual. No se usa `map.isStyleLoaded()`: da falso mientras se
  * bajan teselas y se perderían cambios (capas importadas, íconos nuevos).
@@ -81,6 +82,17 @@ let overlayReady = false
 
 const EMPTY = emptyCollection()
 const feature = (geometry: unknown) => (geometry ? { type: 'Feature' as const, properties: {}, geometry } : EMPTY)
+
+// ---------- Unidades según el idioma ----------
+/** Rótulo de la escala: `0,5 Mn` en español, `0.5 Nm` en inglés. */
+const scaleLabel = (nm: number) => `${new Intl.NumberFormat(locale.value, { maximumFractionDigits: 2 }).format(nm)} ${t('units.nm')}`
+/** Rótulo de cada anillo de distancia (número con el separador del idioma y la unidad). */
+const ringLabelExpression = () =>
+  ['concat', ['number-format', ['get', 'radiusNm'], { 'min-fraction-digits': 0, 'max-fraction-digits': 2, locale: locale.value }], ` ${t('units.nm')}`] as never
+watch(locale, () => {
+  scaleControl?.setFormat(scaleLabel)
+  if (map?.getLayer('rings-labels')) map.setLayoutProperty('rings-labels', 'text-field', ringLabelExpression())
+})
 
 // ---------- Datos de las capas ----------
 const vesselData = () => {
@@ -213,7 +225,7 @@ function addOverlay(m: MapLibre) {
     id: 'rings-labels',
     type: 'symbol',
     source: 'rings-labels',
-    layout: { 'text-field': ['concat', ['to-string', ['get', 'radiusNm']], ' Nm'], 'text-font': LABEL_FONT, 'text-size': 11, 'text-allow-overlap': true },
+    layout: { 'text-field': ringLabelExpression(), 'text-font': LABEL_FONT, 'text-size': 11, 'text-allow-overlap': true },
     paint: { 'text-color': colors.accent, ...halo },
   })
   // Derrotas grabadas (azul) y la que se está grabando (rojo, para distinguirla del resto).
@@ -341,7 +353,8 @@ onMounted(() => {
   map.touchZoomRotate.disableRotation()
   if (import.meta.env.DEV) (window as unknown as { __map: MapLibre }).__map = map
   map.addControl(new AttributionControl({ compact: true }), 'bottom-left')
-  map.addControl(new ScaleControl({ unit: 'nautical', maxWidth: 110 }), 'bottom-right')
+  scaleControl = new NauticalScaleControl(scaleLabel, 110)
+  map.addControl(scaleControl, 'bottom-right')
 
   map.on('style.load', () => {
     if (!map) return

@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref, shallowRef, watch } from 'vue'
 import { DEFAULT_RECORD_RULES, shouldRecord, trackToGpx, trackStats, type TrackPoint } from '@gpsm/shared'
 import { i18n } from '@/i18n'
+import { formatNumber } from '@/i18n/numbers'
 import type { Track } from '@/repositories/tracks'
 import { fileStamp, makeFile, shareOrDownload, MIME } from '@/services/files'
 import { useDatabaseStore } from './database'
@@ -88,7 +89,7 @@ export const useTracksStore = defineStore('tracks', () => {
     activePoints.value = []
     list.value = await r.list()
     await loadVisible()
-    toast.push(i18n.global.t('tracks.saved', { nm: stats.distanceNm.toFixed(2) }), { tone: 'success' })
+    toast.push(i18n.global.t('tracks.saved', { nm: formatNumber(stats.distanceNm, 2) }), { tone: 'success' })
   }
 
   // Cada posición nueva: se graba si cambió lo suficiente.
