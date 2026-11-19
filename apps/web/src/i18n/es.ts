@@ -338,6 +338,7 @@ export default {
     showCursor: 'Cursor',
     hideCursor: 'Ocultar cursor',
     forecast: 'Pronóstico',
+    forecastNoPoint: 'Activa el cursor o el GPS para ver el pronóstico de un punto.',
   },
   mapMeasure: {
     start: 'Medir',
@@ -391,6 +392,8 @@ export default {
   },
   pointForecast: {
     title: 'Pronóstico del punto',
+    sourceCursor: 'Posición del cursor',
+    sourceGps: 'Posición del GPS',
     wind: 'Viento',
     gusts: 'Ráfagas',
     waves: 'Olas',

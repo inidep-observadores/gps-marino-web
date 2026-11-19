@@ -30,6 +30,7 @@ import { usePositionLog } from '@/composables/usePositionLog'
 import { useRouteActions } from '@/composables/useRouteActions'
 import { useTheme } from '@/composables/useTheme'
 import { useGpsStore } from '@/stores/gps'
+import { useToastStore } from '@/stores/toast'
 import { useMapStore } from '@/stores/map'
 import { useNavigationStore } from '@/stores/navigation'
 import { useUiStore } from '@/stores/ui'
@@ -45,6 +46,7 @@ const { t } = useI18n()
 const f = useFormat()
 const theme = useTheme()
 const gps = useGpsStore()
+const toast = useToastStore()
 const map = useMapStore()
 const nav = useNavigationStore()
 const ui = useUiStore()
@@ -73,6 +75,17 @@ function locate() {
  * Como en Flutter: sin ruta, "Navegar aquí" la inicia en el cursor; con una ruta en curso, el botón pasa a
  * "Añadir a la ruta" y suma un tramo. Los puntos del cursor se numeran para distinguirlos en la ruta.
  */
+/**
+ * Pronóstico: si el cursor está activo se toma su posición (el centro del mapa); si no, la última posición del GPS.
+ * Sin ninguna de las dos no hay punto: se avisa qué hacer.
+ */
+function openForecast() {
+  if (map.cursorVisible) return ui.openPointForecast(map.center, 'cursor')
+  const c = gps.current
+  if (c) return ui.openPointForecast({ lat: c.lat, lon: c.lon }, 'gps')
+  toast.push(t('mapControls.forecastNoPoint'), { tone: 'warning' })
+}
+
 function cursorToRoute() {
   const name = hasRoute.value ? t('mapInfo.cursorPointN', { n: nav.route.length + 1 }) : t('mapInfo.cursorTarget')
   goOrAppend({ name, lat: map.center.lat, lon: map.center.lon, waypointId: null })
@@ -176,8 +189,8 @@ const night = computed(() => theme.resolved.value === 'night')
           <button type="button" class="map-chip" :aria-pressed="map.cursorVisible" @click="map.setCursor(!map.cursorVisible)">
             <SquareDashedMousePointer class="size-4" aria-hidden="true" />{{ map.cursorVisible ? t('mapControls.hideCursor') : t('mapControls.showCursor') }}
           </button>
-          <!-- Pronóstico de viento y olas del punto bajo el cursor (centro del mapa). -->
-          <button type="button" class="map-chip" @click="ui.openPointForecast(map.center)">
+          <!-- Pronóstico de viento y olas del cursor (si está activo) o de la posición del GPS. -->
+          <button type="button" class="map-chip" @click="openForecast">
             <CloudSun class="size-4" aria-hidden="true" />{{ t('mapControls.forecast') }}
           </button>
           <button type="button" class="map-chip" @click="map.startMeasuring()">

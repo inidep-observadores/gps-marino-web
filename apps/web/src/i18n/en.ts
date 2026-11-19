@@ -337,6 +337,7 @@ const en: Messages<typeof es> = {
     showCursor: 'Cursor',
     hideCursor: 'Hide cursor',
     forecast: 'Forecast',
+    forecastNoPoint: 'Turn on the cursor or the GPS to see the forecast for a point.',
   },
   mapMeasure: {
     start: 'Measure',
@@ -390,6 +391,8 @@ const en: Messages<typeof es> = {
   },
   pointForecast: {
     title: 'Point forecast',
+    sourceCursor: 'Cursor position',
+    sourceGps: 'GPS position',
     wind: 'Wind',
     gusts: 'Gusts',
     waves: 'Waves',

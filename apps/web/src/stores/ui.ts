@@ -37,6 +37,8 @@ export const useUiStore = defineStore('ui', () => {
   /** Copia leída, esperando que el usuario elija combinar o reemplazar. */
   /** Punto cuyo pronóstico muestra la hoja `pointForecast`. */
   const forecastPoint = shallowRef<{ lat: number; lon: number } | null>(null)
+  /** De dónde sale el punto del pronóstico: el cursor del mapa o la posición del GPS. */
+  const forecastSource = ref<'cursor' | 'gps'>('cursor')
   const pendingRestore = shallowRef<{ fileName: string; backup: ParsedBackup } | null>(null)
 
   window.addEventListener('hashchange', () => {
@@ -71,8 +73,9 @@ export const useUiStore = defineStore('ui', () => {
     open('export')
   }
 
-  function openPointForecast(p: { lat: number; lon: number }) {
+  function openPointForecast(p: { lat: number; lon: number }, source: 'cursor' | 'gps' = 'cursor') {
     forecastPoint.value = p
+    forecastSource.value = source
     open('pointForecast')
   }
 
@@ -81,5 +84,5 @@ export const useUiStore = defineStore('ui', () => {
     open('restore')
   }
 
-  return { sheet, view, editing, exportRequest, pendingRestore, forecastPoint, open, close, go, openNewWaypoint, openWaypoint, openExport, openRestore, openPointForecast }
+  return { sheet, view, editing, exportRequest, pendingRestore, forecastPoint, forecastSource, open, close, go, openNewWaypoint, openWaypoint, openExport, openRestore, openPointForecast }
 })

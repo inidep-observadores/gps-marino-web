@@ -5,6 +5,7 @@ import { RotateCw, Waves, Wind, WifiOff } from '@lucide/vue'
 import { HOUR_MS, MS_TO_KN, WIND_BAND_LIMITS_KN, beaufortForce, cardinal16, hoursFrom, type PointHour } from '@gpsm/shared'
 import { useFormat } from '@/composables/useFormat'
 import { usePointForecastStore } from '@/stores/pointForecast'
+import { useUiStore } from '@/stores/ui'
 import HourlyChart, { type ChartBand, type ChartLine } from './HourlyChart.vue'
 
 /**
@@ -16,6 +17,7 @@ const props = defineProps<{ lat: number; lon: number }>()
 const { t, locale } = useI18n()
 const f = useFormat()
 const store = usePointForecastStore()
+const ui = useUiStore()
 const now = ref(Date.now())
 
 onMounted(() => void store.load({ lat: props.lat, lon: props.lon }))
@@ -59,7 +61,10 @@ const stale = computed(() => !!store.data && Date.now() - store.data.fetchedAt >
 
 <template>
   <div class="flex flex-col gap-5">
-    <p class="numeric text-sm text-ink-muted">{{ f.lat(lat) }} · {{ f.lon(lon) }}</p>
+    <p class="flex flex-col gap-0.5 text-sm text-ink-muted">
+      <span class="eyebrow">{{ t(ui.forecastSource === 'gps' ? 'pointForecast.sourceGps' : 'pointForecast.sourceCursor') }}</span>
+      <span class="numeric">{{ f.lat(lat) }} · {{ f.lon(lon) }}</span>
+    </p>
 
     <div v-if="store.loading" class="flex flex-col gap-3" role="status" :aria-label="t('wind.loading')">
       <div class="skeleton h-24"></div>
