@@ -16,6 +16,7 @@
   "dependencies": {
     "@fontsource-variable/geist": "^5.3.0",
     "@fontsource-variable/geist-mono": "^5.3.0",
+    "@fortawesome/free-solid-svg-icons": "7.3.1",
     "@gpsm/shared": "workspace:*",
     "@lucide/vue": "~1.70.0",
     "@sqlite.org/sqlite-wasm": "3.54.1-build1",

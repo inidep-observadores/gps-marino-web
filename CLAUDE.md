@@ -12,18 +12,28 @@ Antes de dar algo por terminado: `pnpm build && pnpm test`.
 
 ## Estructura
 ```
-packages/shared/      TS puro (sin Vue ni Nest): dominio + esquemas zod (domain.ts), íconos/colores de marca
-                      compatibles con Flutter (marks.ts), uuidv7 (ids.ts), búsqueda sin acentos (text.ts). Con tests.
+packages/shared/      TS puro (sin Vue ni Nest), con tests: dominio + esquemas zod (domain.ts), íconos/colores de marca
+                      compatibles con Flutter (marks.ts), uuidv7 (ids.ts), búsqueda sin acentos (text.ts),
+                      geometría esférica en Nm (geo.ts), formatos náuticos (format.ts), velocidad promedio y COG
+                      derivados de posiciones (motion.ts), ruta/ETA/avance automático/avisos de arribo (navigation.ts)
 apps/web/
   src/db/             schema.ts (Drizzle), migrations/ (generadas), migrations.ts (glob de Vite),
                       engine.ts (motor SQL síncrono sobre sqlite-wasm: lo usan el worker y los tests),
                       worker.ts (SQLite + OPFS opfs-sahpool, expuesto con Comlink), client.ts (Drizzle sqlite-proxy),
                       protocol.ts (API del worker, nombre de archivo por usuario)
   src/repositories/   waypoints, layers, settings (+ ruta activa): interfaz + implementación Drizzle; reloj inyectable
-  src/stores/         prefs (idioma y tema, localStorage), ui (vista por hash + hoja abierta), database (base abierta + repos)
-  src/composables/    useTheme, useConfirm, useOnline, useMediaQuery, usePwaInstall, useNavItems, storage
+  src/services/       geolocation (watchPosition → PositionSample; fuente intercambiable), simulatedGeo (solo desarrollo),
+                      notify (notificaciones del sistema vía service worker + vibración)
+  src/stores/         prefs (idioma y tema, localStorage), ui (vista por hash + hoja abierta + posición capturada),
+                      database (base abierta + repos), gps (estado, muestras, velocidad/COG, Wake Lock),
+                      navigation (ruta persistida, tramos, ETA, avance y avisos), waypoints, toast
+  src/composables/    useTheme, useConfirm, useOnline, useMediaQuery, usePwaInstall, useNavItems, useFormat (formatos de
+                      pantalla por idioma), useWakeLock, usePositionLog (registro rápido / registrar posición), storage
   src/components/     ui/ (BaseSheet, ConfirmDialog, CardSection, ReadoutTile, SegmentedControl, StatusPill),
-                      layout/ (AppHeader, AppNav, AppFooter, AppSheets, ConfirmHost, ConnectionBanner, AppLogo), panels/
+                      ToggleRow; layout/ (AppHeader, AppNav, AppFooter, AppSheets, ConfirmHost, ToastHost, ConnectionBanner,
+                      AppLogo); gps/ (PositionCard, NavigationCard, SavePositionForm, DestinationPicker);
+                      marks/ (MarkGlyph, MarkIconPicker, MarkColorPicker, markIcons: SVG de Font Awesome sin su librería);
+                      panels/ (SettingsPanel, RouteSettings)
   src/views/          GpsView, WaypointsView, MapView (por hash en App.vue, con KeepAlive)
   src/i18n/           es.ts (fuente de las claves) y en.ts (tipado contra es)
   tests/              Vitest en Node con SQLite real en memoria (tests/helpers/testDb.ts)
@@ -51,7 +61,17 @@ apps/web/
 - **SQLite en el navegador:** `@sqlite.org/sqlite-wasm` en un worker con el VFS `opfs-sahpool` (no requiere COOP/COEP). Un solo contexto puede abrir el pool: con la app abierta en dos pestañas del mismo origen, la segunda cae a una base **en memoria** y Ajustes lo informa (`DbInfo.fallbackReason`). Pendiente: coordinar pestañas (Web Locks) si molesta.
 - `@sqlite.org/sqlite-wasm` está excluido de `optimizeDeps` (localiza su `.wasm` relativo al módulo). El `.wasm` se precachea para abrir sin conexión; los workers `sqlite3-worker1` y `sqlite3-opfs-async-proxy` que emite el paquete no se usan y se excluyen del precache.
 - Las migraciones se aplican en el worker al abrir la base (`engine.migrate`, tabla `__migrations`), no con el migrador de Drizzle (lee del sistema de archivos).
-- En desarrollo, `window.__gpsm.database` da acceso a la base desde la consola (`await __gpsm.database.ready()` → repositorios).
+- En desarrollo, `window.__gpsm` da acceso a `database`, `gps`, `navigation` y `waypoints` desde la consola.
+  **El navegador integrado no tiene GPS:** `const sim = __gpsm.simulate({ lat: -38.05, lon: -57.5, speedKn: 8, courseDeg: 135, reportMotion: false })`
+  pone un buque simulado (con `reportMotion: false` llegan sin velocidad ni rumbo, como en iOS, y se prueban los derivados);
+  `sim.set({ speedKn: 120 })` acelera para probar el avance de ruta. Con el panel del navegador oculto las capturas llegan
+  desfasadas (animaciones en pausa): verificar estado por DOM/JS.
+- **GPS (fase 1):** velocidad = promedio de las últimas 10 muestras (como Flutter); si el dispositivo no informa velocidad o rumbo
+  se derivan de posiciones más alejadas que el ruido (`2 × precisión`, mín. 15 m), no de la anterior (a 1 Hz el avance es menor que
+  la precisión). `stale` tras 15 s sin fix. Arranque automático solo si el permiso ya estaba concedido. Wake Lock mientras el GPS está activo.
+- **Ruta:** `stepRoute` (shared) decide aviso y avance en cada fix: llegada a 0,1 Nm o "línea de través" (≤ 0,27 Nm, > 1 kn, diferencia
+  rumbo/marcación > 110°); el último punto nunca se quita solo. ETA = distancia total / velocidad promedio. Ajustes de aviso en `settings`
+  (`route.arrival`). Notificación del sistema si hay permiso + aviso en pantalla siempre.
 - `typescript` fijado en 5.x por `vue-tsc`. pnpm rechaza versiones publicadas hace poco (`minimumReleaseAge`): fijar una versión con al menos un par de semanas en vez de agregar excepciones.
 - Íconos PWA (`public/*.png`) generados desde `public/icon.svg` con Chrome headless (el maskable con la marca al 72 %).
 - En la web no hay GPS en segundo plano: con la pantalla apagada o la pestaña oculta el navegador suspende la geolocalización. Decisión: no hace falta (se usa Wake Lock mientras se navega).

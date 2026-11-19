@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Database, Download, Monitor, Moon, MoonStar, Sun } from '@lucide/vue'
+import RouteSettings from '@/components/panels/RouteSettings.vue'
 import SegmentedControl, { type SegmentOption } from '@/components/ui/SegmentedControl.vue'
 import StatusPill from '@/components/ui/StatusPill.vue'
 import { usePwaInstall } from '@/composables/usePwaInstall'
@@ -76,6 +77,8 @@ const version = __APP_VERSION__
         <SegmentedControl v-model="prefs.locale" :options="localeOptions" :label="t('settings.language')" />
       </div>
     </section>
+
+    <RouteSettings />
 
     <section class="flex flex-col gap-3">
       <h3 class="eyebrow flex items-center gap-1.5"><Database class="size-3.5" aria-hidden="true" />{{ t('settings.storage') }}</h3>

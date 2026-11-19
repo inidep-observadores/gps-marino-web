@@ -17,4 +17,6 @@ pnpm preview    # sirve el build (service worker y modo sin conexión)
 ```
 
 ## Estado
-Fase 0 (fundaciones) terminada: monorepo, paquete compartido, sistema de diseño, layout con las pestañas GPS / Ubicaciones / Mapa, tema claro/oscuro/nocturno, PWA y base SQLite persistente (OPFS) con migraciones y repositorios. Próximo: fase 1 (GPS y navegación).
+Fase 0 (fundaciones) terminada: monorepo, paquete compartido, sistema de diseño, layout con las pestañas GPS / Ubicaciones / Mapa, tema claro/oscuro/nocturno, PWA y base SQLite persistente (OPFS) con migraciones y repositorios. 
+
+Fase 1 (GPS y navegación) terminada: lectura del GPS con estados, velocidad promedio y rumbo (derivados si el dispositivo no los da), pantalla encendida, registro rápido y registrar posición con ícono y color, destino y ruta con avance automático, ETA y avisos de arribo, ruta persistida. Próximo: fase 2 (ubicaciones).

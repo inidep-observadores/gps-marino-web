@@ -176,13 +176,13 @@ Cada fase termina con `pnpm build && pnpm test` en verde y una prueba manual en 
 
 ### Etapa 1 — Webapp local, sin conexión
 
-**Fase 0 · Fundaciones** (≈ 1 semana)
+**Fase 0 · Fundaciones** (≈ 1 semana) — ✅ hecha (18/11/2026)
 - Monorepo pnpm, TypeScript estricto, ESLint/Prettier, Vitest, CLAUDE.md y SPEC.md del proyecto.
 - `apps/web`: Vite + Vue + Pinia + vue-i18n + Tailwind v4 + PWA; sistema de diseño portado; layout con las tres pestañas (GPS, Ubicaciones, Mapa) + Ajustes; tema claro/oscuro/sistema.
 - Worker de SQLite (sqlite-wasm + OPFS) + Drizzle + migraciones + repositorios con tests en memoria.
 - `packages/shared`: tipos de dominio, enums de íconos y colores con tabla de compatibilidad con los índices de Flutter.
 
-**Fase 1 · GPS y navegación** (≈ 1,5 semanas)
+**Fase 1 · GPS y navegación** (≈ 1,5 semanas) — ✅ hecha (18/11/2026); falta probar en un teléfono real
 - `useGeolocation`: `watchPosition` con alta precisión, estados (inactivo / buscando / con fix / error de permiso), rumbo y velocidad calculados cuando faltan, velocidad promedio de 10 muestras, Wake Lock.
 - Lógica pura con tests (portada de Dart): distancia en Nm, marcación, ETA, distancia total de la ruta, avance automático (0,1 Nm / 0,27 Nm + través > 110°), avisos de arribo; formatos `GG° MM,mmm'`, `000°`, kn, Nm.
 - Pantalla de permisos (onboarding) y vista GPS completa con lecturas, estados animados y acciones (activar, registro rápido, registrar posición, elegir destino).

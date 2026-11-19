@@ -31,6 +31,11 @@
   --ds-layer-scallop: oklch(0.7 0.15 163);
   --ds-layer-crab: oklch(0.77 0.16 70);
   --ds-layer-shrimp: oklch(0.66 0.21 354);
+  /* Colores de marca de los waypoints (rojo, verde, azul, naranja de la app Flutter). */
+  --ds-mark-red: oklch(0.6 0.22 27);
+  --ds-mark-green: oklch(0.62 0.17 145);
+  --ds-mark-blue: oklch(0.58 0.2 258);
+  --ds-mark-orange: oklch(0.7 0.18 52);
   --ds-canvas: oklch(0.972 0.003 255);
   --ds-surface: oklch(1 0 0);
   --ds-surface-2: oklch(0.953 0.004 255);
@@ -70,6 +75,10 @@
   --ds-grid: oklch(0.8 0.02 255 / 0.04);
   --ds-shadow: 0 1px 0 oklch(1 0 0 / 0.04) inset, 0 12px 32px -16px oklch(0 0 0 / 0.75);
   --ds-glass: oklch(0.16 0.006 255 / 0.72);
+  --ds-mark-red: oklch(0.7 0.19 25);
+  --ds-mark-green: oklch(0.78 0.17 148);
+  --ds-mark-blue: oklch(0.72 0.15 250);
+  --ds-mark-orange: oklch(0.8 0.15 60);
   color-scheme: dark;
 }
 
@@ -103,6 +112,10 @@
   --ds-layer-scallop: oklch(0.5 0.1 50);
   --ds-layer-crab: oklch(0.58 0.13 55);
   --ds-layer-shrimp: oklch(0.52 0.16 15);
+  --ds-mark-red: oklch(0.62 0.2 27);
+  --ds-mark-green: oklch(0.55 0.1 60);
+  --ds-mark-blue: oklch(0.5 0.12 340);
+  --ds-mark-orange: oklch(0.66 0.15 45);
   color-scheme: dark;
 }
 
@@ -135,6 +148,11 @@
   --color-layer-scallop: var(--ds-layer-scallop);
   --color-layer-crab: var(--ds-layer-crab);
   --color-layer-shrimp: var(--ds-layer-shrimp);
+
+  --color-mark-red: var(--ds-mark-red);
+  --color-mark-green: var(--ds-mark-green);
+  --color-mark-blue: var(--ds-mark-blue);
+  --color-mark-orange: var(--ds-mark-orange);
 
   --radius-card: 1.25rem;
   --shadow-card: var(--ds-shadow);
@@ -521,6 +539,68 @@
   }
   .data-table tr[aria-selected='true'] > * {
     background: color-mix(in oklch, var(--ds-accent) 10%, var(--ds-surface));
+  }
+
+  /* Interruptor (role="switch") */
+  .switch {
+    @apply relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border border-line-strong bg-surface-3 transition;
+  }
+  .switch::after {
+    content: '';
+    @apply absolute left-0.5 size-5 rounded-full bg-surface shadow-card transition-transform;
+  }
+  .switch[aria-checked='true'] {
+    @apply border-transparent bg-accent;
+  }
+  .switch[aria-checked='true']::after {
+    @apply translate-x-5 bg-accent-ink;
+  }
+  .switch:disabled {
+    @apply opacity-50;
+  }
+
+  /* Avisos flotantes (toasts): encima de la barra inferior en móvil */
+  .toast-stack {
+    @apply pointer-events-none fixed inset-x-0 z-50 flex flex-col items-center gap-2 px-4;
+    bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  }
+  @media (min-width: 48rem) {
+    .toast-stack {
+      bottom: 1.5rem;
+    }
+  }
+  .toast {
+    @apply pointer-events-auto flex w-full max-w-md animate-rise items-start gap-3 rounded-2xl border border-line bg-surface px-4 py-3
+      text-sm text-ink shadow-2xl;
+  }
+
+  /* Lectura principal (posición) en grande */
+  .readout-hero {
+    @apply numeric text-[1.65rem] leading-tight font-medium tracking-tight text-ink sm:text-3xl;
+  }
+
+  /* Búsqueda de señal: anillos que se expanden alrededor del ícono */
+  .radar {
+    @apply relative flex size-20 items-center justify-center rounded-full bg-accent/10 text-accent;
+  }
+  .radar::before,
+  .radar::after {
+    content: '';
+    @apply absolute inset-0 rounded-full border-2 border-accent/50;
+    animation: radar-ping 2.4s cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+  }
+  .radar::after {
+    animation-delay: 1.2s;
+  }
+  @keyframes radar-ping {
+    from {
+      transform: scale(0.8);
+      opacity: 0.9;
+    }
+    to {
+      transform: scale(1.9);
+      opacity: 0;
+    }
   }
 
   /* Carga */
