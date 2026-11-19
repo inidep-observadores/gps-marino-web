@@ -1,0 +1,542 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/geist/wght.css';
+@import '@fontsource-variable/geist-mono/wght.css';
+
+/*
+ * Sistema de diseño de GPS Marino (portado de Drone Forecast)
+ * -----------------------------------------------------------
+ * 1. Tokens crudos por tema (`--ds-*`) en :root (claro), [data-theme=dark] y [data-theme=night] (puente de noche).
+ * 2. `@theme inline` los expone como utilidades de Tailwind (bg-surface, text-ink, border-line...).
+ * 3. `@layer components` define las clases semánticas (card, btn, chip, readout, status...).
+ * Los componentes usan clases semánticas para la estructura y utilidades solo para el layout puntual.
+ * El estado (verde/amarillo/rojo) se resuelve con `data-status` -> `--status`, sin clases por color.
+ * Colores de los grupos de capas del mapa: tokens `--ds-layer-*` (nunca hex sueltos en componentes).
+ */
+
+/* La variante `dark:` aplica también al tema nocturno (ambos son fondos oscuros). */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *, [data-theme='night'], [data-theme='night'] *));
+/* Teléfono en horizontal: poca altura útil. */
+@custom-variant short (@media (orientation: landscape) and (max-height: 540px));
+
+/* ---------- 1. Tokens ---------- */
+
+/* Claro: blanco y grises neutros fríos, tinta casi negra y azul vivo. */
+:root {
+  /* Grupos de capas base (mismos tonos que la app Flutter), legibles sobre los tres temas. */
+  --ds-layer-coast: oklch(0.6 0.01 255);
+  --ds-layer-territorial: oklch(0.62 0.19 259);
+  --ds-layer-eez: oklch(0.64 0.21 25);
+  --ds-layer-zcp: oklch(0.7 0.15 163);
+  --ds-layer-closure: oklch(0.64 0.21 25);
+  --ds-layer-scallop: oklch(0.7 0.15 163);
+  --ds-layer-crab: oklch(0.77 0.16 70);
+  --ds-layer-shrimp: oklch(0.66 0.21 354);
+  --ds-canvas: oklch(0.972 0.003 255);
+  --ds-surface: oklch(1 0 0);
+  --ds-surface-2: oklch(0.953 0.004 255);
+  --ds-surface-3: oklch(0.925 0.005 255);
+  --ds-ink: oklch(0.17 0.01 255);
+  --ds-ink-muted: oklch(0.42 0.012 255);
+  --ds-ink-subtle: oklch(0.58 0.012 255);
+  --ds-line: oklch(0.9 0.004 255);
+  --ds-line-strong: oklch(0.8 0.006 255);
+  --ds-accent: oklch(0.54 0.21 255);
+  --ds-accent-ink: oklch(0.99 0 0);
+  --ds-go: oklch(0.58 0.16 152);
+  --ds-caution: oklch(0.68 0.16 70);
+  --ds-stop: oklch(0.57 0.21 27);
+  --ds-grid: oklch(0.4 0.01 255 / 0.05);
+  --ds-shadow: 0 1px 2px oklch(0.2 0.01 255 / 0.06), 0 8px 24px -12px oklch(0.2 0.01 255 / 0.16);
+  --ds-glass: oklch(1 0 0 / 0.78);
+  color-scheme: light;
+}
+
+/* Oscuro: negro profundo con lecturas luminosas. */
+[data-theme='dark'] {
+  --ds-canvas: oklch(0.14 0.005 255);
+  --ds-surface: oklch(0.185 0.006 255);
+  --ds-surface-2: oklch(0.225 0.007 255);
+  --ds-surface-3: oklch(0.265 0.008 255);
+  --ds-ink: oklch(0.97 0.003 255);
+  --ds-ink-muted: oklch(0.75 0.008 255);
+  --ds-ink-subtle: oklch(0.6 0.01 255);
+  --ds-line: oklch(0.28 0.008 255);
+  --ds-line-strong: oklch(0.38 0.01 255);
+  --ds-accent: oklch(0.72 0.16 250);
+  --ds-accent-ink: oklch(0.14 0.01 255);
+  --ds-go: oklch(0.8 0.17 152);
+  --ds-caution: oklch(0.84 0.15 80);
+  --ds-stop: oklch(0.7 0.19 24);
+  --ds-grid: oklch(0.8 0.02 255 / 0.04);
+  --ds-shadow: 0 1px 0 oklch(1 0 0 / 0.04) inset, 0 12px 32px -16px oklch(0 0 0 / 0.75);
+  --ds-glass: oklch(0.16 0.006 255 / 0.72);
+  color-scheme: dark;
+}
+
+/*
+ * Nocturno (puente de noche): todo en rojo tenue sobre negro para no perder la adaptación a la oscuridad.
+ * El estado conserva su texto (nunca solo color), así que verde/amarillo se atenúan hacia el rojo-ámbar.
+ */
+[data-theme='night'] {
+  --ds-canvas: oklch(0.1 0.01 25);
+  --ds-surface: oklch(0.13 0.015 25);
+  --ds-surface-2: oklch(0.16 0.02 25);
+  --ds-surface-3: oklch(0.19 0.025 25);
+  --ds-ink: oklch(0.66 0.17 27);
+  --ds-ink-muted: oklch(0.55 0.14 27);
+  --ds-ink-subtle: oklch(0.45 0.11 27);
+  --ds-line: oklch(0.21 0.03 25);
+  --ds-line-strong: oklch(0.28 0.05 25);
+  --ds-accent: oklch(0.6 0.19 29);
+  --ds-accent-ink: oklch(0.1 0.01 25);
+  --ds-go: oklch(0.6 0.11 60);
+  --ds-caution: oklch(0.66 0.14 50);
+  --ds-stop: oklch(0.6 0.2 27);
+  --ds-grid: oklch(0.6 0.15 27 / 0.04);
+  --ds-shadow: 0 12px 32px -16px oklch(0 0 0 / 0.8);
+  --ds-glass: oklch(0.11 0.012 25 / 0.8);
+  --ds-layer-coast: oklch(0.42 0.09 27);
+  --ds-layer-territorial: oklch(0.5 0.12 35);
+  --ds-layer-eez: oklch(0.55 0.18 27);
+  --ds-layer-zcp: oklch(0.5 0.1 50);
+  --ds-layer-closure: oklch(0.55 0.18 27);
+  --ds-layer-scallop: oklch(0.5 0.1 50);
+  --ds-layer-crab: oklch(0.58 0.13 55);
+  --ds-layer-shrimp: oklch(0.52 0.16 15);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, 'SF Mono', monospace;
+
+  --color-canvas: var(--ds-canvas);
+  --color-surface: var(--ds-surface);
+  --color-surface-2: var(--ds-surface-2);
+  --color-surface-3: var(--ds-surface-3);
+  --color-ink: var(--ds-ink);
+  --color-ink-muted: var(--ds-ink-muted);
+  --color-ink-subtle: var(--ds-ink-subtle);
+  --color-line: var(--ds-line);
+  --color-line-strong: var(--ds-line-strong);
+  --color-accent: var(--ds-accent);
+  --color-accent-ink: var(--ds-accent-ink);
+  --color-go: var(--ds-go);
+  --color-caution: var(--ds-caution);
+  --color-stop: var(--ds-stop);
+  --color-status: var(--status);
+
+  --color-layer-coast: var(--ds-layer-coast);
+  --color-layer-territorial: var(--ds-layer-territorial);
+  --color-layer-eez: var(--ds-layer-eez);
+  --color-layer-zcp: var(--ds-layer-zcp);
+  --color-layer-closure: var(--ds-layer-closure);
+  --color-layer-scallop: var(--ds-layer-scallop);
+  --color-layer-crab: var(--ds-layer-crab);
+  --color-layer-shrimp: var(--ds-layer-shrimp);
+
+  --radius-card: 1.25rem;
+  --shadow-card: var(--ds-shadow);
+
+  --animate-rise: rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-sheet: sheet-in 0.32s cubic-bezier(0.2, 0.9, 0.25, 1) both;
+  --animate-fade: fade-in 0.25s ease-out both;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+  @keyframes sheet-in {
+    from {
+      opacity: 0;
+      transform: translateY(24px) scale(0.985);
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
+/* ---------- 2. Base ---------- */
+
+@layer base {
+  /* Estado por defecto: neutro. `data-status` lo sobreescribe en cualquier elemento. */
+  :root {
+    --status: var(--ds-ink-subtle);
+  }
+  [data-status='green'] {
+    --status: var(--ds-go);
+  }
+  [data-status='yellow'] {
+    --status: var(--ds-caution);
+  }
+  [data-status='red'] {
+    --status: var(--ds-stop);
+  }
+  /* Sin dato: neutro, para no heredar el color de un contenedor con estado. */
+  [data-status='none'] {
+    --status: var(--ds-ink-subtle);
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    --glow: var(--ds-accent);
+    @apply min-h-dvh bg-canvas font-sans text-ink antialiased;
+  }
+
+  body[data-status] {
+    --glow: var(--status);
+  }
+
+  /* Atmósfera: retícula de carta + resplandor teñido por el veredicto actual (`--glow`). */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(120% 60% at 50% -10%, color-mix(in oklch, var(--glow) 16%, transparent), transparent 70%),
+      linear-gradient(var(--ds-grid) 1px, transparent 1px) 0 0 / 32px 32px,
+      linear-gradient(90deg, var(--ds-grid) 1px, transparent 1px) 0 0 / 32px 32px;
+    mask-image: linear-gradient(to bottom, black 0%, black 40%, transparent 85%);
+    transition: background 0.6s ease;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+
+  ::selection {
+    background: color-mix(in oklch, var(--ds-accent) 30%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ---------- 3. Utilidades base reutilizables (se pueden usar con @apply) ---------- */
+
+@utility eyebrow {
+    @apply font-mono text-[0.68rem] font-medium tracking-[0.14em] text-ink-subtle uppercase;
+  }
+@utility display {
+    @apply font-display leading-[1] font-semibold tracking-[-0.03em];
+  }
+@utility numeric {
+    @apply font-mono tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+@utility btn {
+    @apply inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold whitespace-nowrap
+      transition duration-150 select-none active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+  }
+
+/* ---------- 4. Componentes semánticos ---------- */
+
+@layer components {
+  /* Layout */
+  .app-container {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+
+  .dashboard {
+    @apply grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-12 lg:items-start short:grid-cols-12 short:items-start;
+  }
+  .dashboard-aside {
+    @apply flex flex-col gap-4 sm:gap-5 lg:col-span-5 xl:col-span-4 short:col-span-5;
+  }
+  .dashboard-main {
+    @apply flex min-w-0 flex-col gap-4 sm:gap-5 lg:col-span-7 xl:col-span-8 short:col-span-7;
+  }
+  .card-pair {
+    @apply grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2;
+  }
+
+  /* Superficies */
+  .card {
+    @apply relative rounded-card border border-line bg-surface shadow-card;
+  }
+  .card-body {
+    @apply p-4 sm:p-5;
+  }
+  .card-header {
+    @apply flex items-center justify-between gap-3 px-4 pt-4 sm:px-5 sm:pt-5;
+  }
+  .card-title {
+    @apply text-[0.95rem] font-semibold tracking-tight text-ink;
+  }
+  .card-reveal {
+    @apply animate-rise;
+  }
+
+  /* Tipografía */
+  .text-secondary {
+    @apply text-ink-muted;
+  }
+  .text-caption {
+    @apply text-xs leading-relaxed text-ink-subtle;
+  }
+
+  /* Lecturas de instrumento */
+  .readout {
+    @apply flex min-w-0 flex-col gap-1.5 rounded-2xl border border-line bg-surface-2/60 p-3.5;
+  }
+  .readout-label {
+    @apply eyebrow flex items-center gap-1.5;
+  }
+  .readout-value {
+    @apply numeric text-xl leading-none font-medium text-ink sm:text-2xl;
+  }
+  .readout-unit {
+    @apply ml-0.5 font-sans text-xs font-medium text-ink-subtle;
+  }
+  .readout-meta {
+    @apply truncate text-xs text-ink-muted;
+  }
+
+  /* Botones */
+  .btn-primary {
+    @apply btn bg-accent text-accent-ink shadow-[0_8px_20px_-10px_var(--ds-accent)] hover:brightness-110;
+  }
+  .btn-secondary {
+    @apply btn border border-line-strong bg-surface-2 text-ink hover:bg-surface-3;
+  }
+  .btn-danger {
+    @apply btn bg-stop text-canvas shadow-[0_8px_20px_-10px_var(--ds-stop)] hover:brightness-110;
+  }
+  .btn-ghost {
+    @apply btn text-ink-muted hover:bg-surface-2 hover:text-ink;
+  }
+  .icon-btn {
+    @apply inline-flex size-10 shrink-0 items-center justify-center rounded-xl text-ink-muted transition
+      hover:bg-surface-2 hover:text-ink active:scale-95 disabled:opacity-50;
+  }
+
+  /* Chips y selección */
+  .chip {
+    @apply inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 text-sm font-medium
+      text-ink-muted transition hover:border-line-strong hover:text-ink;
+  }
+  .chip[aria-selected='true'],
+  .chip[aria-pressed='true'] {
+    @apply border-transparent bg-ink text-canvas;
+  }
+  .segmented {
+    @apply inline-flex w-full rounded-xl border border-line bg-surface-2 p-1;
+  }
+  .segmented-item {
+    @apply flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg px-2 text-sm font-medium text-ink-muted transition
+      hover:text-ink;
+  }
+  .segmented-item[aria-checked='true'] {
+    @apply bg-surface text-ink shadow-card;
+  }
+  .scroll-row {
+    @apply relative -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-5 sm:px-5;
+    scrollbar-width: none;
+  }
+  .scroll-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Formularios */
+  .field {
+    @apply flex flex-col gap-1.5;
+  }
+  .field-label {
+    @apply text-xs font-medium text-ink-muted;
+  }
+  .input {
+    @apply h-11 w-full rounded-xl border border-line-strong bg-surface px-3.5 text-base text-ink transition outline-none
+      placeholder:text-ink-subtle focus:border-accent focus:ring-4 focus:ring-accent/15 sm:text-sm;
+  }
+  .input-group {
+    @apply relative flex items-center;
+  }
+  .input-icon {
+    @apply pointer-events-none absolute left-3.5 size-4 text-ink-subtle;
+  }
+
+  /* Listas */
+  .list {
+    @apply divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface;
+  }
+  .list-row {
+    @apply flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-surface-2;
+  }
+  /* Fila marcada: se resalta el <li> completo, así cubre también sus acciones (estrella, quitar...). */
+  .list > li:has(> .list-row:is([aria-selected='true'], [aria-current='true'], [aria-current='location'])) {
+    @apply bg-accent/8;
+  }
+
+  /* Estado (semáforo): siempre color + texto */
+  .status-pill {
+    @apply inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold;
+    color: var(--status);
+    background: color-mix(in oklch, var(--status) 14%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--status) 28%, transparent);
+  }
+  .status-dot {
+    @apply inline-block size-2 shrink-0 rounded-full;
+    background: var(--status);
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--status) 22%, transparent);
+  }
+  .status-text {
+    color: var(--status);
+  }
+  .status-tint {
+    background: color-mix(in oklch, var(--status) 9%, transparent);
+  }
+
+  /* Hojas (diálogos modales): bottom sheet en móvil, panel centrado en pantallas grandes */
+  .sheet {
+    @apply m-0 mt-auto max-h-[92dvh] w-full max-w-none overflow-hidden rounded-t-[1.75rem] border border-b-0 border-line
+      bg-surface p-0 text-ink shadow-2xl sm:m-auto sm:max-h-[85dvh] sm:max-w-lg sm:rounded-[1.75rem] sm:border-b;
+  }
+  .sheet-xl {
+    @apply lg:h-[92dvh] lg:max-h-[92dvh] lg:max-w-6xl;
+  }
+  .sheet[open] {
+    @apply flex animate-sheet flex-col;
+  }
+  .sheet::backdrop {
+    @apply animate-fade bg-[oklch(0.12_0.02_258/0.55)] backdrop-blur-sm;
+  }
+  .sheet-header {
+    @apply flex items-center justify-between gap-3 border-b border-line px-5 py-4;
+  }
+  .sheet-title {
+    @apply display text-2xl;
+  }
+  .sheet-body {
+    @apply flex-1 overflow-y-auto overscroll-contain px-5 py-5;
+    padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+  }
+  .sheet-grabber {
+    @apply mx-auto mt-2.5 h-1 w-10 rounded-full bg-line-strong sm:hidden;
+  }
+
+  /* Diálogo de confirmación: siempre centrado y compacto */
+  .dialog-center {
+    @apply m-auto w-[min(92vw,24rem)] max-w-none overflow-hidden rounded-[1.75rem] border border-line bg-surface p-0
+      text-ink shadow-2xl;
+  }
+  .dialog-center[open] {
+    @apply animate-rise;
+  }
+  .dialog-center::backdrop {
+    @apply animate-fade bg-[oklch(0.12_0.02_258/0.55)] backdrop-blur-sm;
+  }
+
+  /* Encabezado de la app */
+  .app-bar {
+    @apply sticky top-0 z-30 border-b border-line/70 backdrop-blur-xl;
+    background: var(--ds-glass);
+    padding-top: env(safe-area-inset-top);
+  }
+
+
+  /* Navegación: pestañas del encabezado (md+) y barra inferior (móvil) */
+  .nav-tabs {
+    @apply hidden items-center gap-1 rounded-xl border border-line bg-surface-2/70 p-1 md:flex;
+  }
+  .nav-tab {
+    @apply inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-sm font-medium whitespace-nowrap text-ink-muted transition
+      hover:text-ink;
+  }
+  .nav-tab[aria-current='page'] {
+    @apply bg-surface text-ink shadow-card;
+  }
+  .bottom-bar {
+    @apply fixed inset-x-0 bottom-0 z-30 grid grid-flow-col auto-cols-fr border-t border-line/70 backdrop-blur-xl md:hidden;
+    background: var(--ds-glass);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .bottom-bar-item {
+    @apply flex flex-col items-center gap-1 pt-2 pb-2.5 text-[0.7rem] font-medium text-ink-subtle transition active:scale-95;
+  }
+  .bottom-bar-icon {
+    @apply flex h-7 w-12 max-w-full items-center justify-center rounded-full transition;
+  }
+  .bottom-bar-item[aria-current='page'] {
+    @apply text-ink;
+  }
+  .bottom-bar-item[aria-current='page'] .bottom-bar-icon {
+    @apply bg-accent/15 text-accent;
+  }
+
+  /* Botón flotante sobre el mapa (Ubicación actual, Buscar más) */
+  .map-chip {
+    @apply pointer-events-auto inline-flex h-10 items-center gap-2 rounded-full border border-line bg-surface/95 px-4 text-sm
+      font-medium whitespace-nowrap text-ink shadow-card backdrop-blur transition select-none hover:bg-surface
+      active:scale-95 disabled:pointer-events-none disabled:opacity-70;
+  }
+
+  /* Avisos flotantes sobre el mapa */
+  .map-notice {
+    @apply inline-flex max-w-full items-center gap-2 rounded-full border border-line bg-surface/95 px-3.5 py-1.5 text-xs text-ink
+      shadow-card backdrop-blur;
+  }
+
+  /* Tabla de datos */
+  .data-table {
+    @apply w-full border-separate border-spacing-0 text-sm;
+  }
+  .data-table thead th {
+    @apply sticky top-0 z-20 border-b border-line bg-surface px-3 py-2.5 text-right eyebrow whitespace-nowrap;
+  }
+  .data-table tbody th,
+  .data-table td {
+    @apply border-b border-line/70 bg-surface px-3 py-2 text-right whitespace-nowrap text-ink;
+  }
+  .data-table td {
+    @apply numeric text-[0.82rem];
+  }
+  .data-table th:first-child {
+    @apply sticky left-0 text-left;
+  }
+  .data-table thead th:first-child {
+    @apply z-30;
+  }
+  .data-table tbody th {
+    @apply z-10;
+  }
+  .data-table tr[aria-selected='true'] > * {
+    background: color-mix(in oklch, var(--ds-accent) 10%, var(--ds-surface));
+  }
+
+  /* Carga */
+  .skeleton {
+    @apply animate-pulse rounded-xl bg-surface-3/70;
+  }
+}
+
+/* Íconos de los controles de MapLibre (son imágenes oscuras): se invierten en el tema oscuro. */
+[data-theme='dark'] .maplibregl-ctrl-icon,
+[data-theme='night'] .maplibregl-ctrl-icon {
+  filter: invert(1);
+}
+
+@layer utilities {
+  .pb-safe {
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  }
+}

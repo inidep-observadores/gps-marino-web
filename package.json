@@ -1,0 +1,14 @@
+{
+  "name": "gps-marino-web",
+  "private": true,
+  "description": "Navegador GPS marino web (réplica de Marine Onboard GPS): PWA offline con SQLite local; backend NestJS en la etapa 2",
+  "packageManager": "pnpm@11.3.0",
+  "scripts": {
+    "dev": "pnpm --filter @gpsm/web dev",
+    "build": "pnpm -r --filter ./packages/** --filter ./apps/** run build",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm -r run test",
+    "preview": "pnpm --filter @gpsm/web preview",
+    "db:generate": "pnpm --filter @gpsm/web db:generate"
+  }
+}
