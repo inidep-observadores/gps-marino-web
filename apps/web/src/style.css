@@ -603,6 +603,33 @@
     }
   }
 
+  /* Campo con error de validación */
+  .input[aria-invalid='true'] {
+    @apply border-stop focus:border-stop focus:ring-stop/15;
+  }
+
+  /* Fila de la lista de ubicaciones: el navegador no dibuja las que están fuera de pantalla (miles de filas). */
+  .wp-row {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 96px;
+  }
+
+  /* Barra de selección múltiple: fija abajo, sobre la barra de navegación en el teléfono */
+  .selection-bar {
+    @apply fixed inset-x-0 z-40 animate-rise border-t border-line bg-surface/95 py-2 shadow-2xl backdrop-blur-xl;
+    bottom: calc(4.25rem + env(safe-area-inset-bottom));
+  }
+  @media (min-width: 48rem) {
+    .selection-bar {
+      bottom: 0;
+      padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+    }
+  }
+  .selection-action {
+    @apply flex min-w-14 flex-col items-center gap-0.5 rounded-xl px-1.5 py-1 text-[0.68rem] font-medium text-ink-muted transition
+      hover:bg-surface-2 hover:text-ink active:scale-95;
+  }
+
   /* Carga */
   .skeleton {
     @apply animate-pulse rounded-xl bg-surface-3/70;

@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, shallowRef } from 'vue'
-import type { PositionSample } from '@gpsm/shared'
+import type { ParsedBackup, PositionSample } from '@gpsm/shared'
 
-export type SheetId = 'settings' | 'savePosition' | 'destination'
+export type SheetId = 'settings' | 'waypoint' | 'destination' | 'export' | 'restore'
 export type ViewId = 'gps' | 'waypoints' | 'map'
 
 /** Hash de cada vista: permite volver con el botón "atrás" y abrir una vista directo desde la PWA. */
@@ -24,11 +24,18 @@ export interface CapturedPosition {
   courseDeg: number | null
 }
 
+/** Qué edita la hoja `waypoint`: una ubicación existente o una nueva a partir de la posición capturada. */
+export type WaypointEditTarget = { kind: 'edit'; id: string } | { kind: 'new'; captured: CapturedPosition }
+
 /** Estado efímero de la interfaz (no se persiste): vista actual, hoja modal abierta y sus datos. */
 export const useUiStore = defineStore('ui', () => {
   const sheet = ref<SheetId | null>(null)
   const view = ref<ViewId>(viewFromHash(window.location.hash))
-  const captured = shallowRef<CapturedPosition | null>(null)
+  const editing = shallowRef<WaypointEditTarget | null>(null)
+  /** Ids a exportar (vacío = todas). `backup` abre la hoja con la copia de seguridad elegida. */
+  const exportRequest = shallowRef<{ ids: string[]; backup: boolean }>({ ids: [], backup: false })
+  /** Copia leída, esperando que el usuario elija combinar o reemplazar. */
+  const pendingRestore = shallowRef<{ fileName: string; backup: ParsedBackup } | null>(null)
 
   window.addEventListener('hashchange', () => {
     view.value = viewFromHash(window.location.hash)
@@ -47,10 +54,25 @@ export const useUiStore = defineStore('ui', () => {
     window.location.hash = VIEW_HASH[v]
   }
 
-  function openSavePosition(c: CapturedPosition) {
-    captured.value = c
-    open('savePosition')
+  function openSavePosition(captured: CapturedPosition) {
+    editing.value = { kind: 'new', captured }
+    open('waypoint')
   }
 
-  return { sheet, view, captured, open, close, go, openSavePosition }
+  function openWaypoint(id: string) {
+    editing.value = { kind: 'edit', id }
+    open('waypoint')
+  }
+
+  function openExport(ids: string[] = [], backup = false) {
+    exportRequest.value = { ids, backup }
+    open('export')
+  }
+
+  function openRestore(fileName: string, backup: ParsedBackup) {
+    pendingRestore.value = { fileName, backup }
+    open('restore')
+  }
+
+  return { sheet, view, editing, exportRequest, pendingRestore, open, close, go, openSavePosition, openWaypoint, openExport, openRestore }
 })

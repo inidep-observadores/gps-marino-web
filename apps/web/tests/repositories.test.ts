@@ -121,3 +121,38 @@ describe('SettingsRepository y RouteRepository', () => {
     expect(await repo.get()).toEqual([])
   })
 })
+
+describe('WaypointRepository.importMany (restaurar copias)', () => {
+  it('combina: agrega conservando los ids que vienen en la copia', async () => {
+    const repo = createWaypointRepository(db, clock)
+    await repo.create(input({ description: 'Existente' }))
+    const id = '0195f000-0000-7000-8000-000000000001'
+    expect(await repo.importMany([{ input: input({ description: 'De la copia' }), id }, { input: input({ description: 'Sin id' }) }])).toBe(2)
+    const list = await repo.list()
+    expect(list.map((w) => w.description).sort()).toEqual(['De la copia', 'Existente', 'Sin id'])
+    expect((await repo.get(id))?.description).toBe('De la copia')
+  })
+
+  it('reemplaza: da de baja lo anterior en la misma transacción', async () => {
+    const repo = createWaypointRepository(db, clock)
+    await repo.create(input({ description: 'Viejo' }))
+    await repo.importMany([{ input: input({ description: 'Nuevo' }) }], { replace: true })
+    expect((await repo.list()).map((w) => w.description)).toEqual(['Nuevo'])
+    expect(await db.select().from(waypoints)).toHaveLength(2)
+  })
+
+  it('reactiva una ubicación borrada si la copia trae su id', async () => {
+    const repo = createWaypointRepository(db, clock)
+    const w = await repo.create(input({ description: 'Borrada' }))
+    await repo.remove([w.id])
+    await repo.importMany([{ input: input({ description: 'Restaurada' }), id: w.id }])
+    expect((await repo.get(w.id))?.description).toBe('Restaurada')
+  })
+
+  it('soporta copias grandes (varios lotes)', async () => {
+    const repo = createWaypointRepository(db, clock)
+    const many = Array.from({ length: 450 }, (_, i) => ({ input: input({ recordedAt: i }) }))
+    expect(await repo.importMany(many)).toBe(450)
+    expect(await repo.count()).toBe(450)
+  })
+})

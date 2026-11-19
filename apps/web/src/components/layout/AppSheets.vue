@@ -2,11 +2,13 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DestinationPicker from '@/components/gps/DestinationPicker.vue'
-import SavePositionForm from '@/components/gps/SavePositionForm.vue'
 import ConfirmHost from '@/components/layout/ConfirmHost.vue'
 import ToastHost from '@/components/layout/ToastHost.vue'
 import SettingsPanel from '@/components/panels/SettingsPanel.vue'
 import BaseSheet from '@/components/ui/BaseSheet.vue'
+import ExportPanel from '@/components/waypoints/ExportPanel.vue'
+import RestorePanel from '@/components/waypoints/RestorePanel.vue'
+import WaypointForm from '@/components/waypoints/WaypointForm.vue'
 import { useUiStore, type SheetId } from '@/stores/ui'
 
 /** Todas las hojas modales de la app, controladas por `ui.sheet`, más los avisos y el diálogo de confirmación. */
@@ -20,20 +22,40 @@ const bind = (id: SheetId) =>
   })
 
 const settings = bind('settings')
-const savePosition = bind('savePosition')
+const waypoint = bind('waypoint')
 const destination = bind('destination')
+const exportSheet = bind('export')
+const restore = bind('restore')
+
+const waypointTitle = computed(() =>
+  ui.editing?.kind === 'edit' ? t('waypointForm.editTitle') : t('savePosition.title'),
+)
+/** Clave que fuerza un formulario nuevo por cada ubicación o posición capturada. */
+const waypointKey = computed(() =>
+  ui.editing?.kind === 'edit' ? ui.editing.id : ui.editing ? `new-${ui.editing.captured.sample.t}` : '',
+)
 </script>
 
 <template>
   <BaseSheet v-model:open="settings" :title="t('settings.title')">
     <SettingsPanel v-if="settings" />
   </BaseSheet>
-  <BaseSheet v-model:open="savePosition" :title="t('savePosition.title')">
-    <!-- La clave fuerza un formulario nuevo para cada posición capturada. -->
-    <SavePositionForm v-if="savePosition && ui.captured" :key="ui.captured.sample.t" :captured="ui.captured" @done="ui.close()" />
+  <BaseSheet v-model:open="waypoint" :title="waypointTitle">
+    <WaypointForm v-if="waypoint && ui.editing" :key="waypointKey" :target="ui.editing" @done="ui.close()" />
   </BaseSheet>
   <BaseSheet v-model:open="destination" :title="t('destination.title')">
     <DestinationPicker v-if="destination" @done="ui.close()" />
+  </BaseSheet>
+  <BaseSheet v-model:open="exportSheet" :title="t('export.title')">
+    <ExportPanel v-if="exportSheet" :ids="ui.exportRequest.ids" :backup="ui.exportRequest.backup" @done="ui.close()" />
+  </BaseSheet>
+  <BaseSheet v-model:open="restore" :title="t('restore.title')">
+    <RestorePanel
+      v-if="restore && ui.pendingRestore"
+      :file-name="ui.pendingRestore.fileName"
+      :backup="ui.pendingRestore.backup"
+      @done="ui.close()"
+    />
   </BaseSheet>
   <ConfirmHost />
   <ToastHost />

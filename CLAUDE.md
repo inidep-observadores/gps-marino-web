@@ -2,6 +2,14 @@
 
 Réplica web de **Marine Onboard GPS** (Flutter, en `D:\Desarrollo\Flutter\Movil\Proyectos\marine_onboard_gps`) con el stack y el sistema de diseño de **Drone Forecast** (`D:\Desarrollo\_PROYECTOS\Drones\Drone Forecast`). Plan, decisiones y fases en `PLAN.md`: leerlo antes de agregar funciones. Para replicar una función, mirar primero cómo la resuelve la app Flutter (`lib/src/modules/...`) y cómo resuelve Drone Forecast la parte web equivalente.
 
+## Contexto de uso (condiciona todo el diseño)
+Se usa **sobre todo en el teléfono, a bordo de buques de pesca y sin Internet** (funciona también en computadora). Por eso:
+- **Nada puede depender de la red**: todo se genera y se guarda en el dispositivo (exportar, copias, ZIP, íconos, fuentes). Ninguna librería por CDN.
+- **Los datos solo existen en el teléfono** hasta la etapa 2: copias de seguridad fáciles y visibles (aviso tras 7 días sin copia).
+- **Táctil, una mano, barco en movimiento, guantes**: objetivos grandes, acciones abajo al alcance del pulgar, nada que dependa solo de gestos finos o de hover; la pulsación larga es un atajo, siempre hay botón equivalente.
+- **Teléfonos modestos y listas largas** (miles de lances): dibujo incremental, `content-visibility`, `shallowRef` en listas grandes.
+- Lectura a pleno sol y de noche (tema nocturno), teclados numéricos (`inputmode`) en coordenadas, velocidad y rumbo.
+
 ## Comandos (raíz, pnpm)
 - `pnpm install` — dependencias del monorepo.
 - `pnpm dev` — servidor de desarrollo de la web (Vite). En el navegador integrado: config `web` de `.claude/launch.json` (puerto 5180); `web-preview` sirve `dist/` en 4180 (service worker y modo sin conexión).
@@ -15,7 +23,9 @@ Antes de dar algo por terminado: `pnpm build && pnpm test`.
 packages/shared/      TS puro (sin Vue ni Nest), con tests: dominio + esquemas zod (domain.ts), íconos/colores de marca
                       compatibles con Flutter (marks.ts), uuidv7 (ids.ts), búsqueda sin acentos (text.ts),
                       geometría esférica en Nm (geo.ts), formatos náuticos (format.ts), velocidad promedio y COG
-                      derivados de posiciones (motion.ts), ruta/ETA/avance automático/avisos de arribo (navigation.ts)
+                      derivados de posiciones (motion.ts), ruta/ETA/avance automático/avisos de arribo (navigation.ts),
+                      orden/búsqueda/agrupado por día (waypointList.ts), copias MogData compatibles con Flutter
+                      (backup.ts), exportadores GPX/KML/CSV (exporters.ts)
 apps/web/
   src/db/             schema.ts (Drizzle), migrations/ (generadas), migrations.ts (glob de Vite),
                       engine.ts (motor SQL síncrono sobre sqlite-wasm: lo usan el worker y los tests),
@@ -23,7 +33,9 @@ apps/web/
                       protocol.ts (API del worker, nombre de archivo por usuario)
   src/repositories/   waypoints, layers, settings (+ ruta activa): interfaz + implementación Drizzle; reloj inyectable
   src/services/       geolocation (watchPosition → PositionSample; fuente intercambiable), simulatedGeo (solo desarrollo),
-                      notify (notificaciones del sistema vía service worker + vibración)
+                      notify (notificaciones del sistema vía service worker + vibración),
+                      files (ZIP con fflate, compartir con Web Share o descargar, leer copias .json/.zip)
+  src/logic/          lógica pura de la web, con tests: waypointForm (grados-minutos-hemisferio, validaciones de Flutter)
   src/stores/         prefs (idioma y tema, localStorage), ui (vista por hash + hoja abierta + posición capturada),
                       database (base abierta + repos), gps (estado, muestras, velocidad/COG, Wake Lock),
                       navigation (ruta persistida, tramos, ETA, avance y avisos), waypoints, toast
@@ -31,7 +43,8 @@ apps/web/
                       pantalla por idioma), useWakeLock, usePositionLog (registro rápido / registrar posición), storage
   src/components/     ui/ (BaseSheet, ConfirmDialog, CardSection, ReadoutTile, SegmentedControl, StatusPill),
                       ToggleRow; layout/ (AppHeader, AppNav, AppFooter, AppSheets, ConfirmHost, ToastHost, ConnectionBanner,
-                      AppLogo); gps/ (PositionCard, NavigationCard, SavePositionForm, DestinationPicker);
+                      AppLogo); gps/ (PositionCard, NavigationCard, DestinationPicker);
+                      waypoints/ (WaypointForm: alta y edición, WaypointRow, SelectionBar, ExportPanel, RestorePanel);
                       marks/ (MarkGlyph, MarkIconPicker, MarkColorPicker, markIcons: SVG de Font Awesome sin su librería);
                       panels/ (SettingsPanel, RouteSettings)
   src/views/          GpsView, WaypointsView, MapView (por hash en App.vue, con KeepAlive)
@@ -72,6 +85,16 @@ apps/web/
 - **Ruta:** `stepRoute` (shared) decide aviso y avance en cada fix: llegada a 0,1 Nm o "línea de través" (≤ 0,27 Nm, > 1 kn, diferencia
   rumbo/marcación > 110°); el último punto nunca se quita solo. ETA = distancia total / velocidad promedio. Ajustes de aviso en `settings`
   (`route.arrival`). Notificación del sistema si hay permiso + aviso en pantalla siempre.
+- **Ubicaciones (fase 2):** formulario único `WaypointForm` para alta ("Registrar posición") y edición; las hojas pueden
+  pedir confirmación antes de cerrarse con `useCloseGuard` (X, fondo, Escape). Selección múltiple con botón o pulsación
+  larga (`useLongPress`); al salir de la pestaña se limpia. Orden y sentido se guardan en `settings` (`waypoints.list`).
+- **Copias:** formato `MogData.json` de Flutter (fecha en µs como texto, íconos/colores por índice, también `icon`/`color`
+  de copias viejas) + `uuid`/`updated` propios (Flutter los ignora). Exportar copia = ZIP con `MogData.json` adentro (lo que
+  busca Flutter al restaurar). Restaurar: combinar (sin duplicar por `uuid` o por instante+posición) o reemplazar
+  (con confirmación), en una sola transacción (`importMany`). Fecha de la última copia en `settings` (`backup.lastAt`).
+- **Compartir archivos:** Chrome para Android no comparte GPX/KML/JSON/ZIP con Web Share (solo algunos tipos): `canShareFile`
+  se consulta por archivo y si no se puede se descarga. El navegador integrado no tiene Web Share. No hacer clic en
+  "Guardar archivo" al verificar (descarga un archivo en la máquina del usuario): verificar armando el archivo por JS.
 - `typescript` fijado en 5.x por `vue-tsc`. pnpm rechaza versiones publicadas hace poco (`minimumReleaseAge`): fijar una versión con al menos un par de semanas en vez de agregar excepciones.
 - Íconos PWA (`public/*.png`) generados desde `public/icon.svg` con Chrome headless (el maskable con la marca al 72 %).
 - En la web no hay GPS en segundo plano: con la pantalla apagada o la pestaña oculta el navegador suspende la geolocalización. Decisión: no hace falta (se usa Wake Lock mientras se navega).

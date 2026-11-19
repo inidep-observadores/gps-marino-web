@@ -188,7 +188,7 @@ Cada fase termina con `pnpm build && pnpm test` en verde y una prueba manual en 
 - Pantalla de permisos (onboarding) y vista GPS completa con lecturas, estados animados y acciones (activar, registro rápido, registrar posición, elegir destino).
 - Store de ruta persistido en `active_route`; notificaciones con respaldo en pantalla.
 
-**Fase 2 · Ubicaciones** (≈ 1,5 semanas)
+**Fase 2 · Ubicaciones** (≈ 1,5 semanas) — ✅ hecha (18/11/2026); falta probar compartir archivos en Android e iOS reales
 - CRUD de waypoints; formulario con lat/lon en grados-minutos-hemisferio y las mismas validaciones; selector de ícono (35) y color; confirmar al salir con cambios (`useConfirm`).
 - Lista: búsqueda sin acentos, orden por fecha/nombre/ícono asc/desc, selección múltiple, mostrar/ocultar en mapa, eliminar, fijar como destino o añadir a la ruta.
 - Exportar GPX, KML, JSON (y TXT/CSV, que hoy falta) en ZIP; **Web Share API con archivos** y descarga como respaldo.

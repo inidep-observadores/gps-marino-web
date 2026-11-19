@@ -19,4 +19,6 @@ pnpm preview    # sirve el build (service worker y modo sin conexión)
 ## Estado
 Fase 0 (fundaciones) terminada: monorepo, paquete compartido, sistema de diseño, layout con las pestañas GPS / Ubicaciones / Mapa, tema claro/oscuro/nocturno, PWA y base SQLite persistente (OPFS) con migraciones y repositorios. 
 
-Fase 1 (GPS y navegación) terminada: lectura del GPS con estados, velocidad promedio y rumbo (derivados si el dispositivo no los da), pantalla encendida, registro rápido y registrar posición con ícono y color, destino y ruta con avance automático, ETA y avisos de arribo, ruta persistida. Próximo: fase 2 (ubicaciones).
+Fase 1 (GPS y navegación) terminada: lectura del GPS con estados, velocidad promedio y rumbo (derivados si el dispositivo no los da), pantalla encendida, registro rápido y registrar posición con ícono y color, destino y ruta con avance automático, ETA y avisos de arribo, ruta persistida.
+
+Fase 2 (ubicaciones) terminada: alta y edición completas (grados-minutos-hemisferio, fecha y hora, velocidad, rumbo, ícono, color), lista con búsqueda sin acentos, orden, agrupado por día y selección múltiple (mostrar/ocultar en el mapa, exportar, eliminar), exportación GPX/KML/CSV y copia de seguridad compatible con la app Flutter (MogData), restaurar combinando o reemplazando, y aviso de copia pendiente. Próximo: fase 3 (mapa).
