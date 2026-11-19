@@ -476,7 +476,7 @@ const en: Messages<typeof es> = {
   mapSettings: {
     title: 'Map settings',
     mapType: 'Map type',
-    typeStandard: 'Default',
+    typeStandard: 'Standard',
     typeVector: 'Vector',
     typeSatellite: 'Satellite',
     typeHybrid: 'Hybrid',

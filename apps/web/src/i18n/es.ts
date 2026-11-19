@@ -477,7 +477,7 @@ export default {
   mapSettings: {
     title: 'Configuración del mapa',
     mapType: 'Tipo de mapa',
-    typeStandard: 'Predeterminado',
+    typeStandard: 'Estándar',
     typeVector: 'Vectorial',
     typeSatellite: 'Satélite',
     typeHybrid: 'Híbrido',
