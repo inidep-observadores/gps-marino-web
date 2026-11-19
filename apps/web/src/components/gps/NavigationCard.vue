@@ -64,9 +64,9 @@ const cancelTarget = cancelRoute
         </div>
         <div class="grid gap-3 @xl:grid-cols-[1fr_12rem] @xl:items-center">
           <div class="grid grid-cols-2 gap-2.5 @md:grid-cols-3 @xl:grid-cols-2">
-            <ReadoutTile :label="t('navigation.distance')" :value="f.distance(nav.nextLeg?.distanceNm)" :unit="t('units.nm')" :icon="Ruler" />
-            <ReadoutTile :label="t('navigation.bearingTo')" :value="f.bearing(nav.nextLeg?.bearingDeg)" :icon="Compass" />
-            <ReadoutTile class="col-span-2 @md:col-span-1 @xl:col-span-2" :label="t('navigation.eta')" :value="etaText" :icon="Clock" />
+            <ReadoutTile center :label="t('navigation.distance')" :value="f.distance(nav.nextLeg?.distanceNm)" :unit="t('units.nm')" :icon="Ruler" />
+            <ReadoutTile center :label="t('navigation.bearingTo')" :value="f.bearing(nav.nextLeg?.bearingDeg)" :icon="Compass" />
+            <ReadoutTile center class="col-span-2 @md:col-span-1 @xl:col-span-2" :label="t('navigation.eta')" :value="etaText" :icon="Clock" />
           </div>
           <!-- Aguja hacia el destino (solo en tarjetas anchas) -->
           <div class="hidden rounded-2xl border border-line bg-surface-2/60 p-3 @xl:block">
@@ -84,8 +84,8 @@ const cancelTarget = cancelRoute
           </div>
           <div class="grid gap-3 @xl:grid-cols-[1fr_12rem] @xl:items-center">
             <div class="grid grid-cols-2 gap-2.5">
-              <ReadoutTile :label="t('navigation.distance')" :value="f.distance(nav.nextLeg?.distanceNm)" :unit="t('units.nm')" :icon="Ruler" />
-              <ReadoutTile :label="t('navigation.legBearing')" :value="f.bearing(nav.nextLeg?.bearingDeg)" :icon="Compass" />
+              <ReadoutTile center :label="t('navigation.distance')" :value="f.distance(nav.nextLeg?.distanceNm)" :unit="t('units.nm')" :icon="Ruler" />
+              <ReadoutTile center :label="t('navigation.legBearing')" :value="f.bearing(nav.nextLeg?.bearingDeg)" :icon="Compass" />
             </div>
             <div class="hidden rounded-2xl border border-line bg-surface-2/60 p-3 @xl:block">
               <CompassDial :course-deg="nav.nextLeg?.bearingDeg ?? null" :value="f.bearing(nav.nextLeg?.bearingDeg)" :label="t('navigation.legBearing')" />
@@ -98,8 +98,8 @@ const cancelTarget = cancelRoute
             <span class="truncate text-lg font-semibold">{{ nav.final.name }}</span>
           </div>
           <div class="grid grid-cols-2 gap-2.5">
-            <ReadoutTile :label="t('navigation.totalDistance')" :value="f.distance(nav.totalNm)" :unit="t('units.nm')" :icon="Milestone" />
-            <ReadoutTile :label="t('navigation.eta')" :value="etaText" :icon="Clock" />
+            <ReadoutTile center :label="t('navigation.totalDistance')" :value="f.distance(nav.totalNm)" :unit="t('units.nm')" :icon="Milestone" />
+            <ReadoutTile center :label="t('navigation.eta')" :value="etaText" :icon="Clock" />
           </div>
         </div>
       </template>

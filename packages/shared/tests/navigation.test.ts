@@ -53,9 +53,12 @@ describe('geometría', () => {
 describe('formatos náuticos (iguales a la app Flutter)', () => {
   it('grados y minutos con tres decimales y hemisferio', () => {
     expect(formatLat(-38.0055)).toBe("38° 00,330' S")
-    expect(formatLon(-57.5426)).toBe("57° 32,556' O")
-    expect(formatLon(-57.5426, { west: 'W', decimal: '.' })).toBe("57° 32.556' W")
+    expect(formatLon(-57.5426)).toBe("057° 32,556' O")
+    expect(formatLon(-57.5426, { west: 'W', decimal: '.' })).toBe("057° 32.556' W")
     expect(formatLat(12.5)).toBe("12° 30,000' N")
+    expect(formatLat(8.25)).toBe("08° 15,000' N")
+    expect(formatLon(103.7267)).toBe("103° 43,602' E")
+    expect(formatLon(5.5)).toBe("005° 30,000' E")
     expect(formatLat(null)).toBe("--° --,---' -")
     expect(formatLon(undefined)).toBe("---° --,---' -")
   })

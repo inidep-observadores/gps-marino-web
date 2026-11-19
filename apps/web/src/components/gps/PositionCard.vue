@@ -111,15 +111,16 @@ const s = computed(() => gps.current)
       <!-- En tarjetas anchas (tableta) las lecturas van a un lado y los instrumentos al otro -->
       <div class="grid gap-3 @2xl:grid-cols-2" :class="{ 'opacity-60': gps.status === 'stale' }">
         <div class="flex flex-col gap-2.5">
-          <div class="readout flex-1 justify-center gap-2.5 p-4">
+          <div class="readout flex-1 items-center justify-center gap-2.5 p-4 text-center">
             <span class="readout-label">{{ t('gps.latitude') }} · {{ t('gps.longitude') }}</span>
-            <span class="readout-hero">{{ f.lat(s.lat) }}</span>
+            <!-- La longitud lleva 3 cifras de grados y la latitud 2: 1ch de relleno a la latitud deja las dos líneas del mismo ancho y alineadas -->
+            <span class="readout-hero ps-[1ch]">{{ f.lat(s.lat) }}</span>
             <span class="readout-hero">{{ f.lon(s.lon) }}</span>
             <span class="readout-meta numeric">{{ t('gps.accuracy') }} {{ t('gps.accuracyValue', { m: f.meters(s.accuracyM) }) }}</span>
           </div>
           <div class="grid grid-cols-2 gap-2.5">
-            <ReadoutTile :label="t('gps.date')" :value="f.date(s.t)" :icon="CalendarDays" />
-            <ReadoutTile :label="t('gps.time')" :value="f.time(s.t)" :icon="Clock" />
+            <ReadoutTile center :label="t('gps.date')" :value="f.date(s.t)" :icon="CalendarDays" />
+            <ReadoutTile center :label="t('gps.time')" :value="f.time(s.t)" :icon="Clock" />
           </div>
         </div>
 

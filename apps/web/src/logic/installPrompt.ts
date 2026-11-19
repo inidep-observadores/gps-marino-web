@@ -8,7 +8,7 @@
 export const INSTALL_SNOOZED_KEY = 'gpsm.install.snoozed'
 export const INSTALL_MUTED_KEY = 'gpsm.install.muted'
 export const INSTALL_SNOOZE_MS = 24 * 60 * 60 * 1000
-export const INSTALL_SUGGEST_DELAY_MS = 6000
+export const INSTALL_SUGGEST_DELAY_MS = 3000
 
 /** Subconjunto de `Storage` que usamos (se inyecta en los tests). */
 export interface KeyValueStore {

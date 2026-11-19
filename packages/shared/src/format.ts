@@ -1,6 +1,7 @@
 /**
  * Formatos de lectura náutica, iguales a los de la app Flutter (`geo_string_format.dart`):
- * coordenadas en grados y minutos con tres decimales (`38° 00,330' S`), rumbo con tres cifras (`045°`).
+ * coordenadas en grados y minutos con tres decimales (`38° 00,330' S`, `057° 32,556' O`: grados con ceros a la izquierda
+ * como en un GPS, 2 cifras en latitud y 3 en longitud), rumbo con tres cifras (`045°`).
  * Las funciones son puras; el idioma solo cambia la letra del oeste (O/W) y el separador decimal.
  */
 
@@ -34,21 +35,22 @@ export function fromDegMin(deg: number, min: number, negative: boolean): number 
   return negative ? -v : v
 }
 
-function formatCoord(value: number, pos: string, neg: string, opts: CoordFormatOptions): string {
+/** `degDigits`: como en cualquier GPS, los grados se rellenan con ceros: 2 cifras en latitud (`08°`) y 3 en longitud (`057°`). */
+function formatCoord(value: number, pos: string, neg: string, opts: CoordFormatOptions, degDigits: number): string {
   const { deg, min, negative } = toDegMin(value)
   const [mi, md] = min.toFixed(3).split('.') as [string, string]
-  return `${deg}° ${mi.padStart(2, '0')}${opts.decimal ?? ','}${md}' ${negative ? neg : pos}`
+  return `${String(deg).padStart(degDigits, '0')}° ${mi.padStart(2, '0')}${opts.decimal ?? ','}${md}' ${negative ? neg : pos}`
 }
 
 export const EMPTY_LAT = "--° --,---' -"
 export const EMPTY_LON = "---° --,---' -"
 
 export function formatLat(lat: number | null | undefined, opts: CoordFormatOptions = {}): string {
-  return lat == null || !Number.isFinite(lat) ? EMPTY_LAT : formatCoord(lat, 'N', 'S', opts)
+  return lat == null || !Number.isFinite(lat) ? EMPTY_LAT : formatCoord(lat, 'N', 'S', opts, 2)
 }
 
 export function formatLon(lon: number | null | undefined, opts: CoordFormatOptions = {}): string {
-  return lon == null || !Number.isFinite(lon) ? EMPTY_LON : formatCoord(lon, 'E', opts.west ?? 'O', opts)
+  return lon == null || !Number.isFinite(lon) ? EMPTY_LON : formatCoord(lon, 'E', opts.west ?? 'O', opts, 3)
 }
 
 /** Rumbo con tres cifras y sin decimales: `5.6` → `006°`. Sin dato: `---`. */
