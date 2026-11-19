@@ -154,6 +154,9 @@ const cleanLine = (coords: unknown): Position[] => (Array.isArray(coords) ? coor
 export function areaLabel(group: BaseGroup | undefined, props: Record<string, unknown>, fileName?: string): string | null {
   if (group === 'areasLangostino') return /\d+/.exec(text(props.Id_area))?.[0] ?? null
   if (group === 'areasVieira') {
+    // `label` es la letra de la unidad (A1, B...); en archivos viejos se saca del nombre (UM_Vieira_RES_5_14_A1).
+    const label = text(props.label)
+    if (label) return label
     const name = text(props.name)
     return name ? (name.split('_').pop() ?? null) : null
   }

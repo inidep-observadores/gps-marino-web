@@ -131,6 +131,7 @@ apps/web/
   (token de color): MapLibre resuelve el color con el tema actual (`colorExpr` en `mapLayers.ts`).
   Tocables: líneas y puntos (las áreas no, como en Flutter). Ocultar un elemento de una capa importada lo atenúa; si es
   una línea, también los puntos de sus extremos (`relatedFeatureIds`). Ids de elementos: `<capa>|<n>[|<parte>]`.
+- **Nombres de las capas base:** cada elemento de `public/layers/**.geojson` debe llevar `name` (título de la ficha) y, si aplica, `description`; si falta, la ficha dice "Elemento seleccionado". Al agregar o reemplazar un archivo, sumar su regla en `apps/web/scripts/normalize-layers.mjs` y ejecutarlo (`node apps/web/scripts/normalize-layers.mjs`, idempotente); `tests/baseLayerNames.test.ts` falla si queda un elemento sin nombre. Vieira guarda la letra de la unidad en `label` (la usa `areaLabel`).
 - **No usar `map.isStyleLoaded()` para decidir si actualizar capas:** da falso mientras se bajan teselas. `MapCanvas`
   usa su propia marca `overlayReady` (verdadera tras `style.load` + `addOverlay`).
 - **Viento (fase 5):** capa más del diálogo de Capas (`stores/wind.ts`, `settings` clave `layers.wind`). Una grilla de ~48

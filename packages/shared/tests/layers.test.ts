@@ -186,3 +186,10 @@ describe('visibilidad inicial de las capas base', () => {
     expect(Object.keys(DEFAULT_BASE_VISIBLE).sort()).toEqual([...BASE_GROUPS].sort())
   })
 })
+
+describe('etiqueta de vieira con `label`', () => {
+  it('usa `label` si existe y, si no, el sufijo del nombre', () => {
+    expect(areaLabel('areasVieira', { name: 'Unidad de manejo de vieira A1', label: 'A1' })).toBe('A1')
+    expect(areaLabel('areasVieira', { name: 'UM_Vieira_RES_5_14_B' })).toBe('B')
+  })
+})
