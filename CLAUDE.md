@@ -139,7 +139,7 @@ apps/web/
 - **Viento (fase 5):** capa más del diálogo de Capas (`stores/wind.ts`, `settings` clave `layers.wind`). Una grilla de ~48
   puntos de Open-Meteo con TODAS las horas en un solo pedido (`buildWindGridUrl`): cambiar de hora no usa la red; solo se
   vuelve a pedir si el mapa sale de la grilla o se acerca mucho. Animación en un canvas encima del mapa
-  (`windParticles.ts`, portado de Drone Forecast; colores por nudos: <10 / 10–21 / 21–33 / >33). `WindTimeControl` (días,
+  (`windParticles.ts`, portado de Drone Forecast; colores por nudos: <10 / 10–21 / 21–33 / >33). Con la capa encendida y sin cursor, un aro con punto (`.map-wind-marker`) marca el punto del que salen los datos del encabezado (el centro del mapa); con el cursor visible lo marca la mira. `WindTimeControl` (días,
   deslizador, reproducir, "Ahora") solo aparece con la capa encendida. Horas elegibles: desde la hora actual (`logic/windTime.ts`).
   Sin conexión: service worker NetworkFirst para `api.open-meteo.com` (4 días) + se conserva la última grilla en memoria; la
   fecha de la respuesta (`Date`) indica de cuándo es el pronóstico. Atribución obligatoria: "Datos: Open-Meteo.com"; uso gratuito

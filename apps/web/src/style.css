@@ -676,6 +676,15 @@
     @apply pointer-events-none absolute top-1/2 left-1/2 z-[2] -translate-x-1/2 -translate-y-1/2 text-ink;
     filter: drop-shadow(0 0 2px var(--ds-canvas)) drop-shadow(0 0 1px var(--ds-canvas));
   }
+  /* Punto de los datos de viento (centro del mapa) cuando no hay cursor: aro y punto de acento, con contorno para leerse sobre las flechas */
+  .map-wind-marker {
+    @apply pointer-events-none absolute top-1/2 left-1/2 z-[2] size-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-accent;
+    background: color-mix(in oklch, var(--ds-accent) 14%, transparent);
+    filter: drop-shadow(0 0 2px var(--ds-canvas)) drop-shadow(0 0 1px var(--ds-canvas));
+  }
+  .map-wind-marker-dot {
+    @apply absolute top-1/2 left-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent;
+  }
   .map-overlay-top {
     @apply pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-center p-2.5 sm:justify-start sm:p-3;
   }

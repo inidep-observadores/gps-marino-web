@@ -106,6 +106,10 @@ const night = computed(() => theme.resolved.value === 'night')
       <!-- Punto central: marca el pixel exacto del cursor (el centro del mapa) para elegir con precisión -->
       <span class="absolute top-1/2 left-1/2 size-[5px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink opacity-90"></span>
     </div>
+    <!-- Viento: marca el punto del que salen los datos del encabezado (el centro del mapa). Con el cursor visible, la mira ya lo marca. -->
+    <div v-else-if="wind.enabled && wind.atCenter" class="map-wind-marker" aria-hidden="true">
+      <span class="map-wind-marker-dot"></span>
+    </div>
 
     <div class="map-overlay-top">
       <MapInfoPanel />
