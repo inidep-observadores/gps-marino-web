@@ -4,9 +4,7 @@ import { useI18n } from 'vue-i18n'
 import {
   CalendarDays,
   Clock,
-  Compass,
   Crosshair,
-  Gauge,
   LifeBuoy,
   MapPinPlus,
   MonitorSmartphone,
@@ -17,29 +15,21 @@ import {
   TriangleAlert,
 } from '@lucide/vue'
 import CardSection from '@/components/ui/CardSection.vue'
+import CompassDial from '@/components/gps/CompassDial.vue'
+import SpeedGauge from '@/components/gps/SpeedGauge.vue'
 import ReadoutTile from '@/components/ui/ReadoutTile.vue'
 import StatusPill from '@/components/ui/StatusPill.vue'
 import { useFormat } from '@/composables/useFormat'
 import { usePositionLog } from '@/composables/usePositionLog'
 import { geoPermission, type GeoPermission } from '@/services/geolocation'
-import { useGpsStore, type GpsStatus } from '@/stores/gps'
-import type { Status } from '@/types'
+import { GPS_STATUS_COLOR as STATUS_COLOR } from '@/logic/gpsStatus'
+import { useGpsStore } from '@/stores/gps'
 
 /** Tarjeta principal de la pestaña GPS: estado de la señal, lecturas de posición y acciones de registro. */
 const { t } = useI18n()
 const f = useFormat()
 const gps = useGpsStore()
 const { quickSave, openSaveForm } = usePositionLog()
-
-const STATUS_COLOR: Record<GpsStatus, Status> = {
-  inactive: 'none',
-  searching: 'yellow',
-  fixed: 'green',
-  stale: 'yellow',
-  denied: 'red',
-  unavailable: 'red',
-  unsupported: 'red',
-}
 
 const permission = ref<GeoPermission>('unknown')
 onMounted(async () => (permission.value = await geoPermission()))
@@ -51,7 +41,7 @@ const s = computed(() => gps.current)
 </script>
 
 <template>
-  <CardSection :title="t('gps.title')" :icon="Satellite">
+  <CardSection :title="t('gps.title')" :icon="Satellite" :status="STATUS_COLOR[gps.status]">
     <template #actions>
       <StatusPill :status="STATUS_COLOR[gps.status]" :label="t(`gps.status.${gps.status}`)" />
     </template>
@@ -98,27 +88,38 @@ const s = computed(() => gps.current)
     </div>
 
     <!-- Con posición -->
-    <div v-else-if="showReadouts && s" class="flex flex-col gap-2.5">
+    <div v-else-if="showReadouts && s" class="flex flex-col gap-3">
       <p v-if="gps.status === 'stale'" class="flex items-start gap-2 rounded-2xl bg-caution/10 px-3.5 py-2.5 text-sm" data-status="yellow">
         <TriangleAlert class="mt-0.5 size-4 shrink-0 text-status" aria-hidden="true" />
         {{ t('gps.staleHint', { s: staleSeconds }) }}
       </p>
 
-      <div class="readout gap-2" :class="{ 'opacity-60': gps.status === 'stale' }">
-        <span class="readout-label">{{ t('gps.latitude') }} · {{ t('gps.longitude') }}</span>
-        <span class="readout-hero">{{ f.lat(s.lat) }}</span>
-        <span class="readout-hero">{{ f.lon(s.lon) }}</span>
-        <span class="readout-meta numeric">{{ t('gps.accuracy') }} {{ t('gps.accuracyValue', { m: f.meters(s.accuracyM) }) }}</span>
+      <!-- En tarjetas anchas (tableta) las lecturas van a un lado y los instrumentos al otro -->
+      <div class="grid gap-3 @2xl:grid-cols-2" :class="{ 'opacity-60': gps.status === 'stale' }">
+        <div class="flex flex-col gap-2.5">
+          <div class="readout flex-1 justify-center gap-2.5 p-4">
+            <span class="readout-label">{{ t('gps.latitude') }} · {{ t('gps.longitude') }}</span>
+            <span class="readout-hero">{{ f.lat(s.lat) }}</span>
+            <span class="readout-hero">{{ f.lon(s.lon) }}</span>
+            <span class="readout-meta numeric">{{ t('gps.accuracy') }} {{ t('gps.accuracyValue', { m: f.meters(s.accuracyM) }) }}</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2.5">
+            <ReadoutTile :label="t('gps.date')" :value="f.date(s.t)" :icon="CalendarDays" />
+            <ReadoutTile :label="t('gps.time')" :value="f.time(s.t)" :icon="Clock" />
+          </div>
+        </div>
+
+        <!-- Instrumentos: velocidad y rumbo -->
+        <div class="rounded-2xl border border-line bg-surface-2/60 p-3 @md:p-4">
+          <div class="grid grid-cols-2 gap-2 @xl:gap-4">
+            <SpeedGauge :speed-kn="gps.speedKn" :value="f.speed(gps.speedKn)" :unit="t('units.kn')" :label="t('gps.speed')" />
+            <CompassDial :course-deg="gps.courseDeg" :value="f.bearing(gps.courseDeg)" :label="t('gps.bearing')" />
+          </div>
+          <p class="text-caption mt-2 text-center">{{ t('gps.speedHint') }}</p>
+        </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-2.5" :class="{ 'opacity-60': gps.status === 'stale' }">
-        <ReadoutTile :label="t('gps.speed')" :value="f.speed(gps.speedKn)" :unit="t('units.kn')" :icon="Gauge" :meta="t('gps.speedHint')" />
-        <ReadoutTile :label="t('gps.bearing')" :value="f.bearing(gps.courseDeg)" :icon="Compass" />
-        <ReadoutTile :label="t('gps.date')" :value="f.date(s.t)" :icon="CalendarDays" />
-        <ReadoutTile :label="t('gps.time')" :value="f.time(s.t)" :icon="Clock" />
-      </div>
-
-      <div class="mt-1 grid grid-cols-2 gap-2.5">
+      <div class="grid grid-cols-2 gap-2.5">
         <button type="button" class="btn-secondary" :disabled="!gps.hasFix" @click="quickSave()">
           <LifeBuoy class="size-4 text-mark-orange" aria-hidden="true" />{{ t('gps.quickSave') }}
         </button>

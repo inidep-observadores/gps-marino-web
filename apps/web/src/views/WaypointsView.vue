@@ -82,7 +82,8 @@ function startSelection() {
 </script>
 
 <template>
-  <div class="mx-auto flex max-w-3xl flex-col gap-4 sm:gap-5" :class="{ 'pb-20': store.selectMode }">
+  <div class="dashboard mx-auto max-w-3xl lg:max-w-none" :class="{ 'pb-20': store.selectMode }">
+    <div class="dashboard-aside lg:sticky lg:top-20 lg:col-span-4 xl:col-span-4">
     <CardSection
       :title="t('waypoints.title')"
       :subtitle="store.loaded ? t('waypoints.count', store.items.length) : t('common.loading')"
@@ -143,7 +144,9 @@ function startSelection() {
         </template>
       </div>
     </CardSection>
+    </div>
 
+    <div class="dashboard-main lg:col-span-8 xl:col-span-8">
     <div v-if="!store.loaded" class="flex flex-col gap-2" role="status" :aria-label="t('common.loading')">
       <div v-for="i in 4" :key="i" class="skeleton h-16"></div>
     </div>
@@ -170,6 +173,7 @@ function startSelection() {
       <div ref="sentinel" class="h-px" aria-hidden="true"></div>
       <p v-if="shown.length < store.visibleList.length" class="text-caption text-center">{{ t('common.loading') }}</p>
     </template>
+    </div>
 
     <SelectionBar v-if="store.selectMode" />
   </div>

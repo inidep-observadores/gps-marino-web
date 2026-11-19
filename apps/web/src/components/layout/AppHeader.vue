@@ -16,7 +16,7 @@ const ui = useUiStore()
         <AppLogo class="size-8 shrink-0" />
         <span class="flex min-w-0 flex-col leading-none">
           <span class="truncate text-sm font-semibold tracking-tight">{{ t('app.title') }}</span>
-          <span class="eyebrow mt-1 truncate text-[0.6rem]">{{ t('app.tagline') }}</span>
+          <span class="eyebrow mt-1 truncate text-[0.6rem] md:max-lg:hidden">{{ t('app.tagline') }}</span>
         </span>
       </div>
 

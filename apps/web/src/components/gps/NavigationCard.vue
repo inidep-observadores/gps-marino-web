@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Clock, Compass, Flag, ListPlus, MapPinned, Milestone, Navigation, Route, Ruler, X } from '@lucide/vue'
+import CompassDial from '@/components/gps/CompassDial.vue'
 import CardSection from '@/components/ui/CardSection.vue'
 import ReadoutTile from '@/components/ui/ReadoutTile.vue'
 import { useFormat } from '@/composables/useFormat'
@@ -61,10 +62,16 @@ const cancelTarget = cancelRoute
           <span class="eyebrow">{{ t('navigation.target') }}</span>
           <span class="display truncate text-2xl">{{ nav.next.name }}</span>
         </div>
-        <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-          <ReadoutTile :label="t('navigation.distance')" :value="f.distance(nav.nextLeg?.distanceNm)" :unit="t('units.nm')" :icon="Ruler" />
-          <ReadoutTile :label="t('navigation.bearingTo')" :value="f.bearing(nav.nextLeg?.bearingDeg)" :icon="Compass" />
-          <ReadoutTile class="col-span-2 sm:col-span-1" :label="t('navigation.eta')" :value="etaText" :icon="Clock" />
+        <div class="grid gap-3 @xl:grid-cols-[1fr_12rem] @xl:items-center">
+          <div class="grid grid-cols-2 gap-2.5 @md:grid-cols-3 @xl:grid-cols-2">
+            <ReadoutTile :label="t('navigation.distance')" :value="f.distance(nav.nextLeg?.distanceNm)" :unit="t('units.nm')" :icon="Ruler" />
+            <ReadoutTile :label="t('navigation.bearingTo')" :value="f.bearing(nav.nextLeg?.bearingDeg)" :icon="Compass" />
+            <ReadoutTile class="col-span-2 @md:col-span-1 @xl:col-span-2" :label="t('navigation.eta')" :value="etaText" :icon="Clock" />
+          </div>
+          <!-- Aguja hacia el destino (solo en tarjetas anchas) -->
+          <div class="hidden rounded-2xl border border-line bg-surface-2/60 p-3 @xl:block">
+            <CompassDial :course-deg="nav.nextLeg?.bearingDeg ?? null" :value="f.bearing(nav.nextLeg?.bearingDeg)" :label="t('navigation.bearingTo')" />
+          </div>
         </div>
       </template>
 
@@ -75,9 +82,14 @@ const cancelTarget = cancelRoute
             <span class="eyebrow">{{ t('navigation.nextPoint') }}</span>
             <span class="display truncate text-2xl">{{ nav.next.name }}</span>
           </div>
-          <div class="grid grid-cols-2 gap-2.5">
-            <ReadoutTile :label="t('navigation.distance')" :value="f.distance(nav.nextLeg?.distanceNm)" :unit="t('units.nm')" :icon="Ruler" />
-            <ReadoutTile :label="t('navigation.legBearing')" :value="f.bearing(nav.nextLeg?.bearingDeg)" :icon="Compass" />
+          <div class="grid gap-3 @xl:grid-cols-[1fr_12rem] @xl:items-center">
+            <div class="grid grid-cols-2 gap-2.5">
+              <ReadoutTile :label="t('navigation.distance')" :value="f.distance(nav.nextLeg?.distanceNm)" :unit="t('units.nm')" :icon="Ruler" />
+              <ReadoutTile :label="t('navigation.legBearing')" :value="f.bearing(nav.nextLeg?.bearingDeg)" :icon="Compass" />
+            </div>
+            <div class="hidden rounded-2xl border border-line bg-surface-2/60 p-3 @xl:block">
+              <CompassDial :course-deg="nav.nextLeg?.bearingDeg ?? null" :value="f.bearing(nav.nextLeg?.bearingDeg)" :label="t('navigation.legBearing')" />
+            </div>
           </div>
         </div>
         <div class="flex flex-col gap-2.5 border-t border-line pt-4">

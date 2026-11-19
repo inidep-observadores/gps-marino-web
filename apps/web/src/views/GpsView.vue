@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onActivated, onBeforeUnmount, onDeactivated, ref, watchEffect } from 'vue'
 import NavigationCard from '@/components/gps/NavigationCard.vue'
 import PositionCard from '@/components/gps/PositionCard.vue'
+import { GPS_STATUS_COLOR } from '@/logic/gpsStatus'
 import { useGpsStore } from '@/stores/gps'
 
 /**
@@ -12,6 +13,21 @@ import { useGpsStore } from '@/stores/gps'
  */
 const gps = useGpsStore()
 const showNavigation = computed(() => gps.status === 'fixed' || gps.status === 'stale')
+
+/**
+ * El fondo de la página se tiñe con el color del estado del GPS (resplandor y retícula de `body[data-status]`, como el
+ * veredicto de Drone Forecast): verde con señal, ámbar buscando o señal vieja, rojo con error. Solo en esta pestaña.
+ */
+const active = ref(true)
+const clearGlow = () => delete document.body.dataset.status
+watchEffect(() => {
+  const status = GPS_STATUS_COLOR[gps.status]
+  if (active.value && status !== 'none') document.body.dataset.status = status
+  else clearGlow()
+})
+onActivated(() => (active.value = true))
+onDeactivated(() => (active.value = false))
+onBeforeUnmount(clearGlow)
 </script>
 
 <template>
