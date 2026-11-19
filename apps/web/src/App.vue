@@ -7,6 +7,7 @@ import AppSheets from '@/components/layout/AppSheets.vue'
 import ConnectionBanner from '@/components/layout/ConnectionBanner.vue'
 import { useTheme } from '@/composables/useTheme'
 import { useUiStore, type ViewId } from '@/stores/ui'
+import BeaufortView from '@/views/BeaufortView.vue'
 import ConverterView from '@/views/ConverterView.vue'
 import GpsView from '@/views/GpsView.vue'
 import MapView from '@/views/MapView.vue'
@@ -15,7 +16,7 @@ import WaypointsView from '@/views/WaypointsView.vue'
 useTheme()
 
 const ui = useUiStore()
-const VIEWS = { gps: GpsView, waypoints: WaypointsView, map: MapView, converter: ConverterView } satisfies Record<ViewId, unknown>
+const VIEWS = { gps: GpsView, waypoints: WaypointsView, map: MapView, converter: ConverterView, beaufort: BeaufortView } satisfies Record<ViewId, unknown>
 const current = computed(() => VIEWS[ui.view])
 const isMap = computed(() => ui.view === 'map')
 </script>

@@ -48,6 +48,7 @@
   --ds-accent: oklch(0.54 0.21 255);
   --ds-accent-ink: oklch(0.99 0 0);
   --ds-go: oklch(0.58 0.16 152);
+  --ds-foam: oklch(0.99 0.004 240);
   --ds-caution: oklch(0.68 0.16 70);
   --ds-stop: oklch(0.57 0.21 27);
   --ds-grid: oklch(0.4 0.01 255 / 0.05);
@@ -70,6 +71,7 @@
   --ds-accent: oklch(0.72 0.16 250);
   --ds-accent-ink: oklch(0.14 0.01 255);
   --ds-go: oklch(0.8 0.17 152);
+  --ds-foam: oklch(0.95 0.01 240);
   --ds-caution: oklch(0.84 0.15 80);
   --ds-stop: oklch(0.7 0.19 24);
   --ds-grid: oklch(0.8 0.02 255 / 0.04);
@@ -99,6 +101,7 @@
   --ds-accent: oklch(0.6 0.19 29);
   --ds-accent-ink: oklch(0.1 0.01 25);
   --ds-go: oklch(0.6 0.11 60);
+  --ds-foam: oklch(0.8 0.07 25);
   --ds-caution: oklch(0.66 0.14 50);
   --ds-stop: oklch(0.6 0.2 27);
   --ds-grid: oklch(0.6 0.15 27 / 0.04);
@@ -136,6 +139,7 @@
   --color-accent: var(--ds-accent);
   --color-accent-ink: var(--ds-accent-ink);
   --color-go: var(--ds-go);
+  --color-foam: var(--ds-foam);
   --color-caution: var(--ds-caution);
   --color-stop: var(--ds-stop);
   --color-status: var(--status);

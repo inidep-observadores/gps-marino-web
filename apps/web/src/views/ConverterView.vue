@@ -2,9 +2,11 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ArrowDownToLine, Copy, Crosshair, Eraser, Gauge, Globe, Ruler, Wind } from '@lucide/vue'
+import BeaufortBadge from '@/components/beaufort/BeaufortBadge.vue'
 import CoordinateAxis from '@/components/converter/CoordinateAxis.vue'
 import UnitConverter from '@/components/converter/UnitConverter.vue'
 import CardSection from '@/components/ui/CardSection.vue'
+import { beaufortFromKnots } from '@gpsm/shared'
 import { useCopy } from '@/composables/useCopy'
 import { useFormat } from '@/composables/useFormat'
 import { useGpsStore } from '@/stores/gps'
@@ -81,7 +83,17 @@ const pressure = computed(() => [unit('hpa', t('converter.units.hpa'), 'hPa'), u
       </CardSection>
 
       <CardSection :title="t('converter.speed')" :subtitle="t('converter.speedHint')" :icon="Gauge">
-        <UnitConverter group="speed" :units="speed" />
+        <UnitConverter group="speed" :units="speed">
+          <!-- Junto a los nudos: la fuerza Beaufort y su nombre -->
+          <template #beside="{ unit, value }">
+            <BeaufortBadge v-if="unit.id === 'kn' && value != null && value >= 0" :kn="value" />
+          </template>
+          <template #below="{ unit, value }">
+            <p v-if="unit.id === 'kn' && value != null && value >= 0" class="text-xs text-ink-muted">
+              {{ t('wind.beaufortN', { n: beaufortFromKnots(value) }) }} · {{ t(`wind.beaufort.${beaufortFromKnots(value)}`) }}
+            </p>
+          </template>
+        </UnitConverter>
       </CardSection>
 
       <CardSection :title="t('converter.distance')" :subtitle="t('converter.distanceHint')" :icon="Ruler">

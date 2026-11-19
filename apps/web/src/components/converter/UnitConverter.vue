@@ -42,6 +42,9 @@ function onInput(id: string, text: string) {
   for (const u of props.units) if (u.id !== id) fields[u.id] = show(all[u.id]!)
 }
 
+/** Valor numérico de cada campo (`null` si está vacío o no es un número): lo usan las ranuras para mostrar datos extra. */
+const values = computed(() => Object.fromEntries(props.units.map((u) => [u.id, parseNumber(fields[u.id] ?? '')])) as Record<string, number | null>)
+
 const hasValue = computed(() => props.units.some((u) => (fields[u.id] ?? '') !== ''))
 function clear() {
   for (const u of props.units) fields[u.id] = ''
@@ -68,6 +71,8 @@ function clear() {
           :placeholder="'0'"
           @input="onInput(u.id, ($event.target as HTMLInputElement).value)"
         />
+        <!-- Dato extra al lado del valor (p. ej. la fuerza Beaufort junto a los nudos) -->
+        <slot name="beside" :unit="u" :value="values[u.id]" />
         <button
           type="button"
           class="icon-btn border border-line"
@@ -80,6 +85,7 @@ function clear() {
         </button>
       </div>
       <p v-if="invalid === u.id" class="text-xs text-stop">{{ t('converter.notANumber') }}</p>
+      <slot name="below" :unit="u" :value="values[u.id]" />
     </div>
     <button v-if="hasValue" type="button" class="btn-ghost h-9 self-start px-3" @click="clear">
       <Eraser class="size-4" aria-hidden="true" />{{ t('converter.clear') }}

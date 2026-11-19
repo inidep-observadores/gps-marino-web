@@ -1,6 +1,6 @@
 import { computed, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeftRight, Map as MapIcon, MapPinned, Satellite } from '@lucide/vue'
+import { ArrowLeftRight, Map as MapIcon, MapPinned, Satellite, Wind } from '@lucide/vue'
 import type { ViewId } from '@/stores/ui'
 
 export interface NavItem {
@@ -17,5 +17,6 @@ export function useNavItems() {
     { id: 'waypoints', label: t('nav.waypoints'), icon: MapPinned },
     { id: 'map', label: t('nav.map'), icon: MapIcon },
     { id: 'converter', label: t('nav.converter'), icon: ArrowLeftRight },
+    { id: 'beaufort', label: t('nav.beaufort'), icon: Wind },
   ])
 }

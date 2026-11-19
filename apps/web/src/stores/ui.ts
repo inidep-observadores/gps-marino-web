@@ -3,7 +3,7 @@ import { ref, shallowRef } from 'vue'
 import type { ParsedBackup, PositionSample, WaypointInput } from '@gpsm/shared'
 
 export type SheetId = 'settings' | 'waypoint' | 'destination' | 'export' | 'restore' | 'mapSettings' | 'layers' | 'pointForecast'
-export type ViewId = 'gps' | 'waypoints' | 'map' | 'converter'
+export type ViewId = 'gps' | 'waypoints' | 'map' | 'converter' | 'beaufort'
 
 /** Hash de cada vista: permite volver con el botón "atrás" y abrir una vista directo desde la PWA. */
 export const VIEW_HASH: Record<ViewId, string> = {
@@ -11,6 +11,7 @@ export const VIEW_HASH: Record<ViewId, string> = {
   waypoints: '#/ubicaciones',
   map: '#/mapa',
   converter: '#/conversor',
+  beaufort: '#/beaufort',
 }
 
 export function viewFromHash(hash: string): ViewId {
