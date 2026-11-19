@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   GRID_TARGET_POINTS,
+  MS_TO_KN,
   HOUR_MS,
   buildWindGridUrl,
   cardinal16,
@@ -124,5 +125,24 @@ describe('intensidad y rosa de los vientos', () => {
     expect(cardinal16(270)).toBe('O')
     expect(cardinal16(270, 'W')).toBe('W')
     expect(cardinal16(359)).toBe('N')
+  })
+})
+
+describe('escala Beaufort', () => {
+  it('fuerza por velocidad en nudos (límites de la OMM)', async () => {
+    const { beaufortForce } = await import('../src')
+    const ms = (kn: number) => kn / MS_TO_KN
+    expect(beaufortForce(0)).toBe(0)
+    expect(beaufortForce(ms(0.9))).toBe(0)
+    expect(beaufortForce(ms(1))).toBe(1)
+    expect(beaufortForce(ms(6.9))).toBe(2)
+    expect(beaufortForce(ms(7))).toBe(3)
+    expect(beaufortForce(ms(16))).toBe(4)
+    expect(beaufortForce(ms(21.9))).toBe(5)
+    expect(beaufortForce(ms(33.9))).toBe(7)
+    expect(beaufortForce(ms(34))).toBe(8)
+    expect(beaufortForce(ms(63.9))).toBe(11)
+    expect(beaufortForce(ms(64))).toBe(12)
+    expect(beaufortForce(ms(150))).toBe(12)
   })
 })

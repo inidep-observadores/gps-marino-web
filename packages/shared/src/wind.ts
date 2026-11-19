@@ -186,3 +186,17 @@ export function parseWindGrid(raw: WindResponse | WindResponse[], spec: GridSpec
     fetchedAt,
   }
 }
+
+// ---------------------------------------------------------------------------------------------------------------
+// Escala Beaufort
+
+/** Límites inferiores (nudos) de cada fuerza Beaufort 0–12 (escala de la OMM). */
+const BEAUFORT_MIN_KN = [0, 1, 4, 7, 11, 17, 22, 28, 34, 41, 48, 56, 64]
+
+/** Fuerza Beaufort (0–12) de una velocidad en m/s. */
+export function beaufortForce(speedMs: number): number {
+  const kn = Math.max(0, speedMs * MS_TO_KN)
+  let f = 0
+  for (let i = 0; i < BEAUFORT_MIN_KN.length; i++) if (kn >= BEAUFORT_MIN_KN[i]!) f = i
+  return f
+}

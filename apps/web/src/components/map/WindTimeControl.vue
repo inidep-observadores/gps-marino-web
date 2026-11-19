@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ChevronDown, ChevronUp, Pause, Play, RotateCw, SkipBack, SkipForward, Wind, WifiOff } from '@lucide/vue'
-import { MS_TO_KN, WIND_BAND_LIMITS_KN, cardinal16 } from '@gpsm/shared'
+import { MS_TO_KN, WIND_BAND_LIMITS_KN, beaufortForce, cardinal16 } from '@gpsm/shared'
 import { localDayKey } from '@/logic/windTime'
 import { useWindStore } from '@/stores/wind'
 
@@ -14,10 +14,26 @@ import { useWindStore } from '@/stores/wind'
 const { t, locale } = useI18n()
 const wind = useWindStore()
 const open = ref(true)
+const west = computed(() => t('units.west'))
 
 const label = computed(() =>
   new Intl.DateTimeFormat(locale.value, { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', hour12: false }).format(wind.hourMs),
 )
+/** Fecha corta ("jue 19 nov"): en el encabezado todo tiene que entrar en una sola línea del teléfono. */
+const shortDate = computed(() => new Intl.DateTimeFormat(locale.value, { weekday: 'short', day: 'numeric', month: 'short' }).format(wind.hourMs).replace(/\./g, ''))
+/** Viento en el centro del mapa a la hora elegida: velocidad, de dónde viene y fuerza Beaufort con su nombre. */
+const head = computed(() => {
+  const w = wind.atCenter
+  if (!w) return null
+  const force = beaufortForce(w.speed)
+  return {
+    kn: Math.round(w.speed * MS_TO_KN),
+    dir: cardinal16(w.directionFrom, west.value),
+    deg: Math.round(w.directionFrom),
+    force,
+    name: t(`wind.beaufort.${force}`),
+  }
+})
 const time = computed(() => new Intl.DateTimeFormat(locale.value, { hour: '2-digit', minute: '2-digit', hour12: false }).format(wind.hourMs))
 const dayLabel = (key: string) => {
   const [y, m, d] = key.split('-').map(Number)
@@ -27,11 +43,6 @@ const dayLabel = (key: string) => {
 }
 const currentDay = computed(() => localDayKey(wind.hourMs))
 
-const west = computed(() => t('units.west'))
-const center = computed(() => {
-  const w = wind.atCenter
-  return w ? `${Math.round(w.speed * MS_TO_KN)} ${t('units.kn')} · ${cardinal16(w.directionFrom, west.value)}` : null
-})
 const updated = computed(() =>
   wind.grid ? new Intl.DateTimeFormat(locale.value, { weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false }).format(wind.grid.fetchedAt) : '',
 )
@@ -51,9 +62,15 @@ const onSlide = (e: Event) => wind.setIndex(Number((e.target as HTMLInputElement
     <!-- Cabecera: hora elegida y plegar -->
     <div class="flex items-center gap-2.5">
       <Wind class="size-5 shrink-0 text-accent" aria-hidden="true" />
-      <button type="button" class="flex min-w-0 flex-1 flex-col text-left" :aria-expanded="open" @click="open = !open">
-        <span class="numeric text-lg leading-tight font-medium">{{ time }}</span>
-        <span class="text-caption truncate first-letter:uppercase">{{ label }}</span>
+      <button type="button" class="flex min-w-0 flex-1 flex-col gap-0.5 text-left" :aria-expanded="open" :aria-label="`${label}${head ? ', ' + head.kn + ' ' + t('units.kn') + ' ' + head.dir + ', ' + t('wind.beaufortN', { n: head.force }) + ' ' + head.name : ''}`" @click="open = !open">
+        <!-- Fecha y hora (una línea, fuente chica para que entre todo en el teléfono) -->
+        <span class="numeric truncate text-[0.8rem] leading-tight font-medium capitalize">{{ shortDate }} · {{ time }}</span>
+        <!-- Viento en el centro del mapa: velocidad, rumbo y fuerza Beaufort -->
+        <span v-if="head" class="numeric flex flex-wrap gap-x-2 text-[0.72rem] leading-tight text-ink-muted">
+          <span>{{ head.kn }} {{ t('units.kn') }} · {{ head.dir }} {{ head.deg }}°</span>
+          <span><span class="text-ink">{{ t('wind.beaufortN', { n: head.force }) }}</span> · {{ head.name }}</span>
+        </span>
+        <span v-else class="text-[0.72rem] leading-tight text-ink-subtle">{{ wind.loading ? t('wind.loading') : t('wind.noData') }}</span>
       </button>
       <button v-if="!wind.isNow && wind.range" type="button" class="btn-secondary h-9 px-3 text-sm" @click="wind.goNow()">{{ t('wind.now') }}</button>
       <button type="button" class="icon-btn" :aria-label="open ? t('wind.collapse') : t('wind.expand')" @click="open = !open">
@@ -114,7 +131,7 @@ const onSlide = (e: Event) => wind.setIndex(Number((e.target as HTMLInputElement
             </li>
             <li class="text-ink-subtle">{{ t('units.kn') }}</li>
           </ul>
-          <p v-if="center" class="numeric text-xs text-ink-muted"><span class="text-ink-subtle">{{ t('wind.atCenter') }}</span> {{ center }}</p>
+          <p v-if="head" class="text-[0.68rem] text-ink-subtle">{{ t('wind.atCenter') }}</p>
         </div>
 
         <p v-if="wind.error" class="flex items-center justify-between gap-2 text-xs text-caution" data-status="yellow">
