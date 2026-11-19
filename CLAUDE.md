@@ -26,7 +26,8 @@ packages/shared/      TS puro (sin Vue ni Nest), con tests: dominio + esquemas z
                       derivados de posiciones (motion.ts), ruta/ETA/avance automático/avisos de arribo (navigation.ts),
                       orden/búsqueda/agrupado por día (waypointList.ts), copias MogData compatibles con Flutter
                       (backup.ts), exportadores GPX/KML/CSV (exporters.ts), geometrías del mapa: anillos, COG, ruta,
-                      medición (mapGeometry.ts)
+                      medición (mapGeometry.ts), capas GeoJSON/GPX con simplestyle, colores Garmin, etiquetas de
+                      áreas con polylabel y elementos ocultos (layers.ts; el GPX recibe el parser XML inyectado)
 apps/web/
   src/db/             schema.ts (Drizzle), migrations/ (generadas), migrations.ts (glob de Vite),
                       engine.ts (motor SQL síncrono sobre sqlite-wasm: lo usan el worker y los tests),
@@ -50,7 +51,8 @@ apps/web/
                       panels/ (SettingsPanel, RouteSettings);
                       map/ (MapCanvas: MapLibre, siempre vía lazyMap; mapStyles: tipos de mapa y tokenColor;
                       mapImages: íconos y buque dibujados en canvas; offlineTiles: caché propio de teselas;
-                      MapInfoPanel, MapFeatureCard, MapSettingsPanel)
+                      mapLayers: capas vectoriales en MapLibre; MapInfoPanel, MapFeatureCard, MapSettingsPanel, LayersPanel)
+  src/layers/         baseLayers (grupos base empaquetados en public/layers, con su token de color)
   src/views/          GpsView, WaypointsView, MapView (por hash en App.vue, con KeepAlive)
   src/i18n/           es.ts (fuente de las claves) y en.ts (tipado contra es)
   tests/              Vitest en Node con SQLite real en memoria (tests/helpers/testDb.ts)
@@ -117,6 +119,16 @@ apps/web/
   - **Verificar con el panel del navegador VISIBLE** (`mcp__ccd_view__show_pane` preview): oculto, no corre
     `requestAnimationFrame` y MapLibre no termina de cargar el estilo (parece un error y no lo es). En desarrollo
     `window.__map` es la instancia de MapLibre.
+- **Capas (fase 4):** grupos base en `apps/web/public/layers/` (copiados de `assets/geojson` de Flutter; se PRECACHEAN y
+  sirven de mapa de respaldo sin conexión). Visibilidad por grupo en `settings` (`layers.base`, claves de Flutter) y
+  etiquetas de áreas en `layers.labels`. Importadas: GeoJSON/GPX/ZIP (primer archivo válido), contenido en SQLite,
+  nombre repetido → confirmar sobrescribir. Estilos de Flutter: áreas generales sin relleno, demás grupos base al 15 %,
+  importadas lo de simplestyle o 25 %; veda punteada. Se parsea con color por defecto VACÍO y cada elemento lleva `_tok`
+  (token de color): MapLibre resuelve el color con el tema actual (`colorExpr` en `mapLayers.ts`).
+  Tocables: líneas y puntos (las áreas no, como en Flutter). Ocultar un elemento de una capa importada lo atenúa; si es
+  una línea, también los puntos de sus extremos (`relatedFeatureIds`). Ids de elementos: `<capa>|<n>[|<parte>]`.
+- **No usar `map.isStyleLoaded()` para decidir si actualizar capas:** da falso mientras se bajan teselas. `MapCanvas`
+  usa su propia marca `overlayReady` (verdadera tras `style.load` + `addOverlay`).
 - `typescript` fijado en 5.x por `vue-tsc`. pnpm rechaza versiones publicadas hace poco (`minimumReleaseAge`): fijar una versión con al menos un par de semanas en vez de agregar excepciones.
 - Íconos PWA (`public/*.png`) generados desde `public/icon.svg` con Chrome headless (el maskable con la marca al 72 %).
 - En la web no hay GPS en segundo plano: con la pantalla apagada o la pestaña oculta el navegador suspende la geolocalización. Decisión: no hace falta (se usa Wake Lock mientras se navega).

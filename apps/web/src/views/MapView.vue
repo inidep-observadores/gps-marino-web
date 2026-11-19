@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   Crosshair,
+  Layers,
   LocateFixed,
   LocateOff,
   MapPinPlus,
@@ -99,6 +100,9 @@ const night = computed(() => theme.resolved.value === 'night')
       >
         <LocateOff v-if="!gps.active" class="size-5" />
         <LocateFixed v-else class="size-5" :class="{ 'text-accent': map.following }" />
+      </button>
+      <button type="button" class="map-fab" :aria-label="t('layers.title')" :title="t('layers.title')" @click="ui.open('layers')">
+        <Layers class="size-5" />
       </button>
       <button type="button" class="map-fab" :aria-label="t('mapSettings.title')" :title="t('mapSettings.title')" @click="ui.open('mapSettings')">
         <Settings2 class="size-5" />

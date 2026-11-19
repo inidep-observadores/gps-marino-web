@@ -18,7 +18,6 @@ import {
   ScaleControl,
   setWorkerUrl,
   type GeoJSONSource,
-  type MapLayerMouseEvent,
   type StyleSpecification,
 } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -36,9 +35,11 @@ import {
 } from '@gpsm/shared'
 import { useTheme } from '@/composables/useTheme'
 import { useGpsStore } from '@/stores/gps'
+import { useLayersStore } from '@/stores/layers'
 import { useMapStore } from '@/stores/map'
 import { useNavigationStore } from '@/stores/navigation'
 import { useWaypointsStore } from '@/stores/waypoints'
+import { syncVectorLayers, tappableLayerIds } from './mapLayers'
 import { markImage, vesselImage, vesselStillImage } from './mapImages'
 import { GLYPHS, LABEL_FONT, LABEL_FONT_BOLD, SEAMARKS_ATTR, SEAMARKS_TILES, palette, rasterBaseStyle, type Palette } from './mapStyles'
 import { OFM_PROTOCOL, loadStandardStyle, ofmTileHandler, trimTileCache } from './offlineTiles'
@@ -53,6 +54,7 @@ const gps = useGpsStore()
 const mapStore = useMapStore()
 const nav = useNavigationStore()
 const waypoints = useWaypointsStore()
+const layers = useLayersStore()
 
 const container = ref<HTMLDivElement | null>(null)
 /** El estilo base no se pudo cargar (sin conexión y sin caché): se dibuja sobre un fondo liso. */
@@ -60,6 +62,11 @@ const offlineBase = ref(false)
 let map: MapLibre | null = null
 let colors: Palette
 let observer: ResizeObserver | null = null
+/**
+ * Las capas propias ya están armadas sobre el estilo actual. No se usa `map.isStyleLoaded()`: da falso mientras se
+ * bajan teselas y se perderían cambios (capas importadas, íconos nuevos).
+ */
+let overlayReady = false
 
 const EMPTY = emptyCollection()
 const feature = (geometry: unknown) => (geometry ? { type: 'Feature' as const, properties: {}, geometry } : EMPTY)
@@ -124,6 +131,9 @@ function addOverlay(m: MapLibre) {
   m.addImage('vessel', vesselImage(colors, ratio), { pixelRatio: ratio })
   m.addImage('vessel-still', vesselStillImage(colors, ratio), { pixelRatio: ratio })
   ensureMarkImages(m)
+
+  // Capas vectoriales (costas, límites, áreas, importadas): debajo de todo lo propio.
+  syncVectorLayers(m, layers.renderLayers, { colors, showLabels: layers.showLabels, imported: layers.imported })
 
   if (mapStore.settings.seamarks) {
     m.addSource('seamarks', { type: 'raster', tiles: [SEAMARKS_TILES], tileSize: 256, minzoom: 6, maxzoom: 18, attribution: SEAMARKS_ATTR })
@@ -248,6 +258,7 @@ async function applyStyle() {
     offlineBase.value = true
   }
   if (seq !== styleSeq || !map) return // llegó un pedido más nuevo mientras se bajaba este
+  overlayReady = false
   map.setStyle(style, { diff: false })
 }
 
@@ -270,7 +281,9 @@ onMounted(() => {
   map.addControl(new ScaleControl({ unit: 'nautical', maxWidth: 110 }), 'bottom-left')
 
   map.on('style.load', () => {
-    if (map) addOverlay(map)
+    if (!map) return
+    addOverlay(map)
+    overlayReady = true
   })
   void applyStyle()
   void trimTileCache()
@@ -305,13 +318,23 @@ onMounted(() => {
   // Si el usuario mueve el mapa con el dedo, deja de seguir al buque (como en Flutter).
   map.on('dragstart', () => (mapStore.following = false))
 
-  map.on('click', 'waypoints', (e: MapLayerMouseEvent) => {
-    const id = e.features?.[0]?.properties?.id as string | undefined
-    if (id) mapStore.selected = { kind: 'waypoint', id }
-  })
+  // Toque: primero las ubicaciones; si no, líneas y puntos de las capas (con margen para el dedo).
   map.on('click', (e) => {
-    if (map?.getLayer('waypoints') && map.queryRenderedFeatures(e.point, { layers: ['waypoints'] }).length) return
-    mapStore.selected = null
+    if (!map) return
+    const box: [[number, number], [number, number]] = [
+      [e.point.x - 10, e.point.y - 10],
+      [e.point.x + 10, e.point.y + 10],
+    ]
+    const wp = map.getLayer('waypoints') ? map.queryRenderedFeatures(box, { layers: ['waypoints'] })[0] : undefined
+    const wpId = wp?.properties?.id as string | undefined
+    if (wpId) {
+      mapStore.selected = { kind: 'waypoint', id: wpId }
+      return
+    }
+    const ids = tappableLayerIds(map, layers.renderLayers)
+    const hit = ids.length ? map.queryRenderedFeatures(box, { layers: ids })[0] : undefined
+    const featureId = hit?.properties?._id as string | undefined
+    mapStore.selected = hit && featureId ? { kind: 'feature', sourceId: hit.source, featureId } : null
   })
   map.on('mouseenter', 'waypoints', () => map && (map.getCanvas().style.cursor = 'pointer'))
   map.on('mouseleave', 'waypoints', () => map && (map.getCanvas().style.cursor = ''))
@@ -358,12 +381,18 @@ watch(
   () => waypoints.items,
   () => {
     const data = waypointsData()
-    if (map?.isStyleLoaded()) ensureMarkImages(map)
+    if (map && overlayReady) ensureMarkImages(map)
     set('waypoints', data)
     set('waypoints-labels', data)
   },
 )
 watch(() => [mapStore.measurePoints, mapStore.measuring] as const, () => set('measure', measureData()))
+watch(
+  () => [layers.renderLayers, layers.showLabels, layers.imported] as const,
+  () => {
+    if (map && overlayReady) syncVectorLayers(map, layers.renderLayers, { colors: colors ?? palette(), showLabels: layers.showLabels, imported: layers.imported }, 'rings')
+  },
+)
 // Tipo de mapa, tema o señales náuticas: otro estilo; las capas propias vuelven en `style.load`.
 watch(() => [mapStore.settings.mapType, mapStore.settings.seamarks, theme.resolved.value] as const, applyStyle)
 </script>

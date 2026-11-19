@@ -41,8 +41,9 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: '/index.html',
-        // App shell completo, incluida la base SQLite (wasm) y las fuentes, para abrir sin conexión desde el primer uso.
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2,wasm}'],
+        // App shell completo, incluida la base SQLite (wasm), las fuentes y las capas base (GeoJSON), para abrir
+        // sin conexión desde el primer uso.
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2,wasm,geojson}'],
         globIgnores: [
           '**/*-{cyrillic,cyrillic-ext,greek,greek-ext,vietnamese}-*.woff2',
           // sqlite-wasm emite estos workers para otros modos (Worker1, VFS `opfs`); la app usa `opfs-sahpool` en su propio worker.

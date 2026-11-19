@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- GPX de prueba al estilo de "Centolla OBS V2": fecha inválida (Z y offset juntos), track con color Garmin,
+     ruta y puntos sueltos con descripción. Los extremos del track coinciden con dos waypoints (inicio y fin del lance). -->
+<gpx version="1.1" creator="Centolla OBS V2" xmlns="http://www.topografix.com/GPX/1/1"
+     xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3">
+  <wpt lat="-46.10" lon="-65.40"><time>2026-08-10T11:10:00.000Z-3</time><name>Lance 1 inicio</name><desc>Calado 08:10</desc></wpt>
+  <wpt lat="-46.20" lon="-65.30"><name>Lance 1 fin</name></wpt>
+  <wpt lat="999" lon="-65.30"><name>Inválido</name></wpt>
+  <trk>
+    <name>Lance 1</name>
+    <desc>Virada 11:10</desc>
+    <extensions><gpxx:TrackExtension><gpxx:DisplayColor>Magenta</gpxx:DisplayColor></gpxx:TrackExtension></extensions>
+    <trkseg>
+      <trkpt lat="-46.10" lon="-65.40"><time>2026-08-10T11:10:00.000Z-3</time></trkpt>
+      <trkpt lat="-46.15" lon="-65.35"/>
+      <trkpt lat="-46.20" lon="-65.30"/>
+    </trkseg>
+  </trk>
+  <rte>
+    <name>Ruta</name>
+    <rtept lat="-46.0" lon="-65.0"><name>R1</name></rtept>
+    <rtept lat="-46.1" lon="-65.1"><name>R2</name></rtept>
+  </rte>
+</gpx>

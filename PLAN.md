@@ -202,7 +202,7 @@ Cada fase termina con `pnpm build && pnpm test` en verde y una prueba manual en 
 - Ficha del elemento seleccionado (propiedades, navegar, añadir a la ruta, ocultar).
 - Hoja de ajustes del mapa (buque, anillos, COG, avisos de ruta).
 
-**Fase 4 · Capas** (≈ 2 semanas)
+**Fase 4 · Capas** (≈ 2 semanas) — ✅ hecha (18/11/2026)
 - Capas base GeoJSON empaquetadas por grupo, con colores, orden Z, línea punteada en vedas, relleno al 15 % y visibilidad persistida.
 - Etiquetas de áreas con las reglas por capa y `polylabel`.
 - Importar GeoJSON, GPX y ZIP: detección de formato, validación previa, simplestyle-spec, colores Garmin, limpieza de `<time>`, sobrescribir por nombre, eliminar, ocultar elementos sueltos, mostrar descripciones de los puntos.

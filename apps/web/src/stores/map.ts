@@ -33,8 +33,8 @@ export interface Camera extends LatLon {
 /** Mar Argentino, a escala de plataforma, si nunca se abrió el mapa. */
 export const DEFAULT_CAMERA: Camera = { lat: -42, lon: -61, zoom: 4.5 }
 
-/** Elemento tocado en el mapa (la fase 4 suma elementos de capas). */
-export type SelectedFeature = { kind: 'waypoint'; id: string }
+/** Elemento tocado en el mapa: una ubicación guardada o un elemento (línea o punto) de una capa. */
+export type SelectedFeature = { kind: 'waypoint'; id: string } | { kind: 'feature'; sourceId: string; featureId: string }
 
 /** Acciones sobre la instancia de MapLibre, que registra `MapCanvas` al montarse. */
 export interface MapController {
