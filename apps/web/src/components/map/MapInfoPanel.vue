@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ChevronDown, ChevronUp } from '@lucide/vue'
+import { ChevronDown, ChevronUp, Route as RouteIcon, X } from '@lucide/vue'
 import { bearingDeg, distanceNm } from '@gpsm/shared'
 import { useFormat } from '@/composables/useFormat'
+import { useRouteActions } from '@/composables/useRouteActions'
 import { useGpsStore } from '@/stores/gps'
 import { useMapStore } from '@/stores/map'
 import { useNavigationStore } from '@/stores/navigation'
@@ -18,6 +19,7 @@ const f = useFormat()
 const gps = useGpsStore()
 const map = useMapStore()
 const nav = useNavigationStore()
+const { cancelRoute } = useRouteActions()
 /** En el teléfono empieza plegado (una línea con lo esencial) para dejar más mapa a la vista. */
 const open = ref(window.matchMedia('(min-width: 640px)').matches)
 
@@ -34,15 +36,21 @@ const toCursor = computed(() =>
 
 <template>
   <section class="map-panel" :aria-label="t('map.info')">
-    <button type="button" class="flex w-full items-center gap-2 text-left" :aria-expanded="open" @click="open = !open">
-      <span class="numeric min-w-0 flex-1 truncate text-sm font-medium">
-        <template v-if="gps.current">{{ f.speed(gps.speedKn) }} {{ t('units.kn') }} · {{ f.bearing(gps.courseDeg) }}</template>
-        <template v-else>{{ t(`gps.status.${gps.status}`) }}</template>
-        <template v-if="nav.next"> · {{ f.distance(nav.nextLeg?.distanceNm) }} {{ t('units.nm') }} → {{ nav.next.name }}</template>
-      </span>
-      <ChevronUp v-if="open" class="size-4 shrink-0 text-ink-subtle" aria-hidden="true" />
-      <ChevronDown v-else class="size-4 shrink-0 text-ink-subtle" aria-hidden="true" />
-    </button>
+    <div class="flex items-center gap-1">
+      <button type="button" class="flex min-w-0 flex-1 items-center gap-2 text-left" :aria-expanded="open" @click="open = !open">
+        <span class="numeric min-w-0 flex-1 truncate text-sm font-medium">
+          <template v-if="gps.current">{{ f.speed(gps.speedKn) }} {{ t('units.kn') }} · {{ f.bearing(gps.courseDeg) }}</template>
+          <template v-else>{{ t(`gps.status.${gps.status}`) }}</template>
+          <template v-if="nav.next"> · {{ f.distance(nav.nextLeg?.distanceNm) }} {{ t('units.nm') }} → {{ nav.next.name }}</template>
+        </span>
+        <ChevronUp v-if="open" class="size-4 shrink-0 text-ink-subtle" aria-hidden="true" />
+        <ChevronDown v-else class="size-4 shrink-0 text-ink-subtle" aria-hidden="true" />
+      </button>
+      <!-- Cancelar el destino vive junto a la ruta que muestra este panel (pide confirmación antes de borrarla) -->
+      <button v-if="nav.next" type="button" class="icon-btn -my-1 size-8 shrink-0 text-stop" :aria-label="t('navigation.cancelTarget')" :title="t('navigation.cancelTarget')" @click="cancelRoute">
+        <X class="size-4" />
+      </button>
+    </div>
 
     <dl v-if="open && (gps.current || nav.next || map.cursorVisible)" class="map-panel-grid">
       <div v-if="gps.current" class="col-span-2">
@@ -83,6 +91,10 @@ const toCursor = computed(() =>
           <dd>{{ f.distance(nav.totalNm) }} · {{ eta }}</dd>
         </div>
       </template>
+
+      <button v-if="nav.next" type="button" class="btn-ghost col-span-2 h-9 justify-start px-2 text-stop" @click="cancelRoute">
+        <RouteIcon class="size-4" aria-hidden="true" />{{ t('navigation.cancelTarget') }}
+      </button>
 
       <template v-if="map.cursorVisible">
         <div class="col-span-2 border-t border-line pt-1.5">

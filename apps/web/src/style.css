@@ -710,13 +710,13 @@
     @apply flex overflow-x-auto overscroll-x-contain py-0.5;
     scrollbar-width: none;
     /* Difuminado en los bordes: indica que hay más botones al desplazar */
-    mask-image: linear-gradient(to right, transparent, black 10px, black calc(100% - 28px), transparent);
+    mask-image: linear-gradient(to right, transparent, black 10px, black calc(100% - 10px), transparent);
   }
   .chip-strip::-webkit-scrollbar {
     display: none;
   }
   .chip-strip-inner {
-    @apply mx-auto flex w-max gap-2 px-0.5;
+    @apply mx-auto flex w-max gap-2 px-2.5;
   }
   .map-chip[aria-pressed='true'] {
     @apply border-accent text-accent;

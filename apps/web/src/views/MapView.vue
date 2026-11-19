@@ -8,7 +8,6 @@ import {
   ListPlus,
   LocateOff,
   MapPinPlus,
-  Route,
   CloudSun,
   Circle,
   Square,
@@ -53,7 +52,7 @@ const ui = useUiStore()
 const wind = useWindStore()
 const tracks = useTracksStore()
 const { openSaveAt } = usePositionLog()
-const { hasRoute, addLabel, goOrAppend, cancelRoute } = useRouteActions()
+const { hasRoute, addLabel, goOrAppend } = useRouteActions()
 
 const zoom = (d: number) => map.controller?.zoomBy(d)
 
@@ -197,10 +196,6 @@ const night = computed(() => theme.resolved.value === 'night')
           </button>
           <button type="button" class="map-chip" @click="map.startMeasuring()">
             <Ruler class="size-4" aria-hidden="true" />{{ t('mapMeasure.start') }}
-          </button>
-          <!-- "Cancelar destino" del menú del mapa de Flutter: visible solo con una ruta en curso. -->
-          <button v-if="hasRoute" type="button" class="map-chip text-stop" @click="cancelRoute">
-            <Route class="size-4" aria-hidden="true" />{{ t('navigation.cancelTarget') }}
           </button>
           </div>
         </div>
