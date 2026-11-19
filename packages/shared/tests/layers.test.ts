@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { DOMParser } from '@xmldom/xmldom'
 import {
+  BASE_GROUPS,
+  DEFAULT_BASE_VISIBLE,
   LayerFormatError,
   areaLabel,
   detectLayerFormat,
@@ -166,5 +168,21 @@ describe('reglas de etiquetas', () => {
     expect(areaLabel('areasVieira', { name: 'UM_Vieira_RES_5_14_A1' })).toBe('A1')
     expect(areaLabel('areasCentolla', {}, 'area_centolla_S3.geojson')).toBe('S3')
     expect(areaLabel(undefined, { name: 'x' })).toBeNull()
+  })
+})
+
+describe('visibilidad inicial de las capas base', () => {
+  it('costas, límites y vedas encendidos; vieira, centolla y langostino apagados', () => {
+    expect(DEFAULT_BASE_VISIBLE).toEqual({
+      mapaBase: true,
+      areasGenerales: true,
+      zonasVeda: true,
+      areasVieira: false,
+      areasCentolla: false,
+      areasLangostino: false,
+    })
+  })
+  it('define un valor para cada grupo', () => {
+    expect(Object.keys(DEFAULT_BASE_VISIBLE).sort()).toEqual([...BASE_GROUPS].sort())
   })
 })

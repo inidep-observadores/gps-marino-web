@@ -65,6 +65,16 @@ export interface ParsedLayer {
 export const BASE_GROUPS = ['mapaBase', 'areasGenerales', 'zonasVeda', 'areasVieira', 'areasCentolla', 'areasLangostino'] as const
 export type BaseGroup = (typeof BASE_GROUPS)[number]
 
+/** Visibilidad inicial de cada grupo base: costas, límites y vedas encendidos; las áreas de pesquerías (vieira, centolla y langostino), apagadas. */
+export const DEFAULT_BASE_VISIBLE: Readonly<Record<BaseGroup, boolean>> = {
+  mapaBase: true,
+  areasGenerales: true,
+  zonasVeda: true,
+  areasVieira: false,
+  areasCentolla: false,
+  areasLangostino: false,
+}
+
 export interface LayerParseOptions {
   /** Prefijo de los ids (la capa). */
   key: string

@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
 import { unzipSync, strFromU8 } from 'fflate'
 import {
-  BASE_GROUPS,
+  DEFAULT_BASE_VISIBLE,
   LayerFormatError,
   detectLayerFormat,
   layerNameFromFile,
@@ -79,7 +79,7 @@ export async function readLayerFile(file: File): Promise<{ name: string; format:
 export const useLayersStore = defineStore('layers', () => {
   const database = useDatabaseStore()
 
-  const baseVisible = ref<Record<BaseGroup, boolean>>(Object.fromEntries(BASE_GROUPS.map((g) => [g, true])) as Record<BaseGroup, boolean>)
+  const baseVisible = ref<Record<BaseGroup, boolean>>({ ...DEFAULT_BASE_VISIBLE })
   const showLabels = ref(false)
   const imported = ref<ImportedLayer[]>([])
   const baseParsed = shallowRef(new Map<BaseGroup, ParsedLayer>())
