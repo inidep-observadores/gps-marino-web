@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Anchor, CircleDot, Layers, Map as MapIcon, MoveUpRight, Mountain, Satellite } from '@lucide/vue'
+import { Anchor, CircleDot, Layers, Map as MapIcon, MoveUpRight, Mountain, Satellite, Spline } from '@lucide/vue'
 import OfflineMapsSection from './OfflineMapsSection.vue'
 import RouteSettings from '@/components/panels/RouteSettings.vue'
 import ToggleRow from '@/components/ui/ToggleRow.vue'
@@ -15,6 +15,7 @@ const s = computed(() => map.settings)
 
 const TYPES = computed(() => [
   { id: 'standard' as MapType, icon: MapIcon, label: t('mapSettings.typeStandard') },
+  { id: 'vector' as MapType, icon: Spline, label: t('mapSettings.typeVector') },
   { id: 'satellite' as MapType, icon: Satellite, label: t('mapSettings.typeSatellite') },
   { id: 'hybrid' as MapType, icon: Layers, label: t('mapSettings.typeHybrid') },
   { id: 'terrain' as MapType, icon: Mountain, label: t('mapSettings.typeTerrain') },

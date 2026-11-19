@@ -109,9 +109,10 @@ apps/web/
   Un solo mapa: `MapCanvas` lee los stores y registra en `stores/map` un `controller` (zoom, centrar). Cursor = centro del
   mapa; la medición marca puntos bajo el cursor. Ajustes en `settings` (`map.settings`), cámara en localStorage
   (`gpsm.map.camera.v1`, propia del dispositivo). Las capas propias se vuelven a agregar en cada `style.load`.
-  - **Tipos:** estándar = OpenFreeMap (claro/oscuro); satélite e híbrido = Esri World Imagery (+ referencias);
+  - **Tipos:** estándar = **Argenmap** (IGN; raster TMS `capabaseargenmap` / `argenmap_oscuro` según el tema; nombres en español, p. ej. "Islas Malvinas (Arg.)"; eje Y invertido → `scheme: 'tms'`; hasta z18; atribución al Instituto Geográfico Nacional obligatoria; sus respuestas traen `no-store` pero el service worker las guarda igual, caché `map-argenmap-tiles`); vectorial = OpenFreeMap (claro/oscuro); satélite e híbrido = Esri World Imagery (+ referencias);
     "Terreno" = batimetría Esri Ocean (datos hasta z10, por eso `maxzoom: 10`). Señales náuticas: OpenSeaMap (opcional).
-  - **Sin conexión:** las teselas de OpenFreeMap llevan la VERSIÓN del planeta en la URL y cambia seguido: con el caché del
+  - **Descarga por zona:** baja Argenmap (tope 4000 teselas, ~30 KB c/u) o, si el tipo elegido es "Vectorial", OpenFreeMap (8000); ver `SOURCE_LIMITS` en `offlineTiles.ts`.
+  - **Sin conexión (vectorial):** las teselas de OpenFreeMap llevan la VERSIÓN del planeta en la URL y cambia seguido: con el caché del
     service worker lo guardado dejaría de encontrarse. Por eso el estilo se reescribe al protocolo `ofm://` y
     `offlineTiles.ts` guarda cada tesela con clave sin versión (caché primero, tope `MAX_TILES`). Estilos, TileJSON,
     fuentes y sprites: service worker (StaleWhileRevalidate); raster Esri/OpenSeaMap: service worker (CacheFirst).

@@ -1,5 +1,6 @@
 import type { StyleSpecification } from 'maplibre-gl'
 import { listTiles, type Bounds } from '@gpsm/shared'
+import { ARGENMAP_CACHE, argenmapTileUrl } from './mapStyles'
 
 /**
  * Teselas vectoriales de OpenFreeMap guardadas para usar sin conexión.
@@ -105,6 +106,16 @@ export const MAX_DOWNLOAD_TILES = 8000
 /** Estimación de peso por tesela (KB): en el mar casi todo es agua y pesan poco; la costa y las ciudades, mucho más. */
 export const AVG_TILE_KB = 25
 
+/**
+ * Qué se descarga por zona: las teselas vectoriales de OpenFreeMap o las raster de Argenmap (más pesadas: PNG de 10–50 KB).
+ * Argenmap guarda en el mismo caché que usa el service worker (`map-argenmap-tiles`), así lo descargado y lo visto es lo mismo.
+ */
+export type TileSource = 'vector' | 'argenmap'
+export const SOURCE_LIMITS: Record<TileSource, { avgKb: number; maxTiles: number }> = {
+  vector: { avgKb: AVG_TILE_KB, maxTiles: MAX_DOWNLOAD_TILES },
+  argenmap: { avgKb: 30, maxTiles: 4000 },
+}
+
 export interface DownloadProgress {
   done: number
   total: number
@@ -123,8 +134,9 @@ export async function downloadArea(
   total: number,
   onProgress: (p: DownloadProgress) => void,
   signal: AbortSignal,
+  source: { kind: TileSource; dark?: boolean } = { kind: 'vector' },
 ): Promise<DownloadProgress & { aborted: boolean; offline: boolean }> {
-  const cache = await caches.open(CACHE)
+  const cache = await caches.open(source.kind === 'argenmap' ? ARGENMAP_CACHE : CACHE)
   const p: DownloadProgress = { done: 0, total, failed: 0, skipped: 0 }
   const it = listTiles(bounds, DOWNLOAD_MIN_ZOOM, maxZoom)
   let consecutiveFails = 0
@@ -137,7 +149,15 @@ export async function downloadArea(
       if (next.done) return
       const c = next.value
       try {
-        if (await cache.match(tileKey(c.z, c.x, c.y))) p.skipped++
+        if (source.kind === 'argenmap') {
+          const url = argenmapTileUrl(c.z, c.x, c.y, !!source.dark)
+          if (await cache.match(url)) p.skipped++
+          else {
+            const res = await fetch(url, { signal })
+            if (!res.ok) throw new Error(`tile ${res.status}`)
+            await cache.put(url, res)
+          }
+        } else if (await cache.match(tileKey(c.z, c.x, c.y))) p.skipped++
         else await fetchAndStore(c, signal)
         consecutiveFails = 0
       } catch {
@@ -154,10 +174,10 @@ export async function downloadArea(
   return { ...p, aborted: signal.aborted, offline }
 }
 
-/** Borra todas las teselas vectoriales guardadas. */
-export async function clearTileCache(): Promise<void> {
+/** Borra todas las teselas guardadas del origen indicado. */
+export async function clearTileCache(kind: TileSource = 'vector'): Promise<void> {
   try {
-    await caches.delete(CACHE)
+    await caches.delete(kind === 'argenmap' ? ARGENMAP_CACHE : CACHE)
   } catch {
     /* sin Cache Storage */
   }
@@ -177,10 +197,10 @@ export async function trimTileCache(max = MAX_TILES): Promise<number> {
   }
 }
 
-/** Cantidad de teselas vectoriales guardadas (para mostrar en Ajustes). */
-export async function storedTileCount(): Promise<number> {
+/** Cantidad de teselas guardadas del origen indicado (para mostrar en Ajustes). */
+export async function storedTileCount(kind: TileSource = 'vector'): Promise<number> {
   try {
-    return (await (await caches.open(CACHE)).keys()).length
+    return (await (await caches.open(kind === 'argenmap' ? ARGENMAP_CACHE : CACHE)).keys()).length
   } catch {
     return 0
   }

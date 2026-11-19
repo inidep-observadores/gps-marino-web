@@ -2,14 +2,16 @@ import type { StyleSpecification } from 'maplibre-gl'
 
 /**
  * Tipos de mapa (los de la app Flutter con Google Maps) con fuentes sin clave de API:
- * - `standard`: teselas vectoriales de OpenFreeMap (claro `positron` / oscuro `dark`, según el tema; ver `offlineTiles.ts`).
+ * - `standard`: Argenmap, el mapa base del Instituto Geográfico Nacional (nombres en español, p. ej. "Islas Malvinas");
+ *   claro `capabaseargenmap` / oscuro `argenmap_oscuro` según el tema. Teselas raster TMS.
+ * - `vector`: teselas vectoriales de OpenFreeMap (claro `positron` / oscuro `dark`, según el tema; ver `offlineTiles.ts`).
  * - `satellite`: imágenes de Esri World Imagery.
  * - `hybrid`: satélite + límites y nombres de Esri.
  * - `terrain`: en una app náutica lo útil es el relieve del fondo: batimetría de Esri Ocean + sus referencias.
  * Las teselas vistas con conexión quedan en caché (service worker) y se reutilizan sin conexión.
  * Este módulo no importa MapLibre en tiempo de ejecución (solo tipos).
  */
-export const MAP_TYPES = ['standard', 'satellite', 'hybrid', 'terrain'] as const
+export const MAP_TYPES = ['standard', 'vector', 'satellite', 'hybrid', 'terrain'] as const
 export type MapType = (typeof MAP_TYPES)[number]
 
 /** Fuentes de OpenFreeMap: las usan las etiquetas propias (anillos, ruta) también sobre los mapas raster. */
@@ -24,12 +26,38 @@ const ESRI_ATTR = 'Esri, Maxar, Earthstar Geographics, GEBCO, NOAA'
 export const SEAMARKS_TILES = 'https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png'
 export const SEAMARKS_ATTR = '© <a href="https://www.openseamap.org" target="_blank" rel="noopener">OpenSeaMap</a>'
 
-function rasterStyle(layers: { id: string; url: string; maxzoom: number }[], background: string): StyleSpecification {
+/**
+ * Argenmap (IGN): el servicio es TMS (GeoWebCache), con el eje Y invertido respecto de XYZ. Datos abiertos del IGN (CC BY 4.0):
+ * hay que citar al Instituto Geográfico Nacional. Las respuestas traen `Cache-Control: no-store`, pero el service worker las
+ * guarda igual (ver `vite.config.ts`) porque a bordo no hay red.
+ */
+const ARGENMAP_BASE = 'https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0'
+export const ARGENMAP_ATTR = '© <a href="https://www.ign.gob.ar" target="_blank" rel="noopener">Instituto Geográfico Nacional</a> · Argenmap'
+export const ARGENMAP_MAX_ZOOM = 18
+export const ARGENMAP_CACHE = 'map-argenmap-tiles'
+export const argenmapLayer = (dark: boolean) => (dark ? 'argenmap_oscuro' : 'capabaseargenmap')
+/** Plantilla para MapLibre (`scheme: 'tms'` se encarga de invertir Y). */
+export const argenmapTemplate = (dark: boolean) => `${ARGENMAP_BASE}/${argenmapLayer(dark)}@EPSG%3A3857@png/{z}/{x}/{y}.png`
+/** URL de una tesela concreta, en coordenadas XYZ (para descargar zonas sin conexión). */
+export function argenmapTileUrl(z: number, x: number, y: number, dark: boolean): string {
+  const tmsY = 2 ** z - 1 - y
+  return `${ARGENMAP_BASE}/${argenmapLayer(dark)}@EPSG%3A3857@png/${z}/${x}/${tmsY}.png`
+}
+
+interface RasterLayer {
+  id: string
+  url: string
+  maxzoom: number
+  scheme?: 'tms'
+  attribution?: string
+}
+
+function rasterStyle(layers: RasterLayer[], background: string): StyleSpecification {
   return {
     version: 8,
     glyphs: GLYPHS,
     sources: Object.fromEntries(
-      layers.map((l) => [l.id, { type: 'raster', tiles: [l.url], tileSize: 256, maxzoom: l.maxzoom, attribution: ESRI_ATTR }]),
+      layers.map((l) => [l.id, { type: 'raster', tiles: [l.url], tileSize: 256, maxzoom: l.maxzoom, attribution: l.attribution ?? ESRI_ATTR, ...(l.scheme ? { scheme: l.scheme } : {}) }]),
     ),
     layers: [
       { id: 'background', type: 'background', paint: { 'background-color': background } },
@@ -38,9 +66,11 @@ function rasterStyle(layers: { id: string; url: string; maxzoom: number }[], bac
   }
 }
 
-/** Estilo base de los mapas raster. El estándar (vectorial) lo arma `offlineTiles.loadStandardStyle`. */
-export function rasterBaseStyle(type: Exclude<MapType, 'standard'>, background: string): StyleSpecification {
+/** Estilo base de los mapas raster. El vectorial (OpenFreeMap) lo arma `offlineTiles.loadStandardStyle`. */
+export function rasterBaseStyle(type: Exclude<MapType, 'vector'>, background: string, dark = false): StyleSpecification {
   switch (type) {
+    case 'standard':
+      return rasterStyle([{ id: 'argenmap', url: argenmapTemplate(dark), maxzoom: ARGENMAP_MAX_ZOOM, scheme: 'tms', attribution: ARGENMAP_ATTR }], background)
     case 'satellite':
       return rasterStyle([{ id: 'imagery', url: esri('World_Imagery'), maxzoom: 19 }], background)
     case 'hybrid':

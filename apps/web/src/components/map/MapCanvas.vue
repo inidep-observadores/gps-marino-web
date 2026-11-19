@@ -263,15 +263,15 @@ const fallbackStyle = (): StyleSpecification => ({
 
 let styleSeq = 0
 /**
- * Aplica el estilo del tipo de mapa y el tema. El estándar se baja (o sale del caché del service worker); si no
- * hay red ni copia, se usa el estilo local para que lo propio siga visible.
+ * Aplica el estilo del tipo de mapa y el tema. El vectorial se baja (o sale del caché del service worker); si no
+ * hay red ni copia, se usa el estilo local para que lo propio siga visible. Los raster no fallan: sus teselas salen del caché o quedan vacías.
  */
 async function applyStyle() {
   const seq = ++styleSeq
   const type = mapStore.settings.mapType
   let style: StyleSpecification
   try {
-    style = type === 'standard' ? await loadStandardStyle(theme.isDark.value) : rasterBaseStyle(type, palette().surface)
+    style = type === 'vector' ? await loadStandardStyle(theme.isDark.value) : rasterBaseStyle(type, palette().surface, theme.isDark.value)
     offlineBase.value = false
   } catch {
     style = fallbackStyle()

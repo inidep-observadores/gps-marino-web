@@ -89,6 +89,17 @@ export default defineConfig({
             },
           },
           {
+            // Mapa base Argenmap (IGN). Las respuestas traen `no-store`; Workbox las guarda igual. Mismo nombre de caché que usa
+            // la descarga por zona (`offlineTiles.downloadArea`).
+            urlPattern: /^https:\/\/wms\.ign\.gob\.ar\/geoserver\/gwc\/service\/tms\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'map-argenmap-tiles',
+              expiration: { maxEntries: 12000, maxAgeSeconds: 365 * 24 * 60 * 60, purgeOnQuotaError: true },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
             // Señales náuticas (OpenSeaMap).
             urlPattern: /^https:\/\/tiles\.openseamap\.org\/.*/i,
             handler: 'CacheFirst',
