@@ -1,0 +1,154 @@
+// Postgres de GPS Marino Web. Los nombres de campos coinciden con la base local de la web (SQLite, apps/web/src/db/schema.ts).
+// Los instantes son ms desde epoch (UTC) en `Float` (double: exacto hasta 2^53) para viajar como número en el JSON.
+// Todas las tablas del usuario tienen clave compuesta (userId, id): los ids los genera el cliente (UUID v7) y dos
+// usuarios nunca pueden pisarse entre sí. `serverVersion` sale de un contador por usuario (User.syncVersion).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id          String   @id @default(uuid(7))
+  googleSub   String   @unique
+  email       String
+  name        String?
+  picture     String?
+  createdAt   DateTime @default(now())
+  lastLoginAt DateTime @default(now())
+  /// Último serverVersion asignado a un registro de este usuario.
+  syncVersion Int      @default(0)
+
+  sessions      Session[]
+  waypoints     Waypoint[]
+  layers        ImportedLayer[]
+  tracks        Track[]
+  trackPoints   TrackPoint[]
+  settings      UserSetting[]
+  activeRoute   ActiveRoute?
+}
+
+/// Refresh token rotativo. `familyId` agrupa los tokens que descienden de un mismo inicio de sesión:
+/// si se reutiliza uno ya rotado, se revoca toda la familia.
+model Session {
+  id          String    @id @default(uuid(7))
+  userId      String
+  familyId    String
+  tokenHash   String
+  userAgent   String?
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime
+  revokedAt   DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([familyId])
+}
+
+model Waypoint {
+  userId        String
+  id            String
+  createdAt     Float
+  updatedAt     Float
+  deletedAt     Float?
+  serverVersion Int
+  description   String
+  recordedAt    Float
+  lat           Float
+  lon           Float
+  speedKn       Float
+  bearing       Float
+  icon          String
+  color         String
+  visible       Boolean
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, id])
+  @@index([userId, serverVersion])
+}
+
+model ImportedLayer {
+  userId           String
+  id               String
+  createdAt        Float
+  updatedAt        Float
+  deletedAt        Float?
+  serverVersion    Int
+  name             String
+  format           String
+  visible          Boolean
+  importedAt       Float
+  hiddenFeatures   Json
+  showDescriptions Boolean
+  content          String
+  sizeBytes        Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, id])
+  @@index([userId, serverVersion])
+}
+
+model Track {
+  userId        String
+  id            String
+  createdAt     Float
+  updatedAt     Float
+  deletedAt     Float?
+  serverVersion Int
+  name          String
+  startedAt     Float
+  endedAt       Float?
+  distanceNm    Float
+  pointCount    Int
+  visible       Boolean
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, id])
+  @@index([userId, serverVersion])
+}
+
+model TrackPoint {
+  userId    String
+  trackId   String
+  seq       Int
+  t         Float
+  lat       Float
+  lon       Float
+  speedKn   Float?
+  courseDeg Float?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, trackId, seq])
+}
+
+model UserSetting {
+  userId        String
+  key           String
+  value         Json
+  updatedAt     Float
+  serverVersion Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, key])
+  @@index([userId, serverVersion])
+}
+
+/// Ruta activa (una por usuario), completa en `points`. Lista vacía = sin ruta.
+model ActiveRoute {
+  userId        String @id
+  updatedAt     Float
+  serverVersion Int
+  points        Json
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

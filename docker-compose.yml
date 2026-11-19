@@ -1,0 +1,21 @@
+# Postgres para desarrollo y pruebas de la API. `docker compose up -d db`
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: gpsm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: gpsm
+      POSTGRES_PASSWORD: gpsm
+      POSTGRES_DB: gpsm
+    ports:
+      - '5437:5432'
+    volumes:
+      - gpsm-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U gpsm']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  gpsm-pgdata:
