@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, shallowRef } from 'vue'
 import type { ParsedBackup, PositionSample, WaypointInput } from '@gpsm/shared'
 
-export type SheetId = 'settings' | 'waypoint' | 'destination' | 'export' | 'restore' | 'mapSettings' | 'layers'
+export type SheetId = 'settings' | 'waypoint' | 'destination' | 'export' | 'restore' | 'mapSettings' | 'layers' | 'pointForecast'
 export type ViewId = 'gps' | 'waypoints' | 'map'
 
 /** Hash de cada vista: permite volver con el botón "atrás" y abrir una vista directo desde la PWA. */
@@ -35,6 +35,8 @@ export const useUiStore = defineStore('ui', () => {
   /** Ids a exportar (vacío = todas). `backup` abre la hoja con la copia de seguridad elegida. */
   const exportRequest = shallowRef<{ ids: string[]; backup: boolean }>({ ids: [], backup: false })
   /** Copia leída, esperando que el usuario elija combinar o reemplazar. */
+  /** Punto cuyo pronóstico muestra la hoja `pointForecast`. */
+  const forecastPoint = shallowRef<{ lat: number; lon: number } | null>(null)
   const pendingRestore = shallowRef<{ fileName: string; backup: ParsedBackup } | null>(null)
 
   window.addEventListener('hashchange', () => {
@@ -69,10 +71,15 @@ export const useUiStore = defineStore('ui', () => {
     open('export')
   }
 
+  function openPointForecast(p: { lat: number; lon: number }) {
+    forecastPoint.value = p
+    open('pointForecast')
+  }
+
   function openRestore(fileName: string, backup: ParsedBackup) {
     pendingRestore.value = { fileName, backup }
     open('restore')
   }
 
-  return { sheet, view, editing, exportRequest, pendingRestore, open, close, go, openNewWaypoint, openWaypoint, openExport, openRestore }
+  return { sheet, view, editing, exportRequest, pendingRestore, forecastPoint, open, close, go, openNewWaypoint, openWaypoint, openExport, openRestore, openPointForecast }
 })

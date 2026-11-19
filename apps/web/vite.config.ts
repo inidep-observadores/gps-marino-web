@@ -69,7 +69,7 @@ export default defineConfig({
           {
             // Pronóstico de viento (Open-Meteo): red primero con espera corta y, sin conexión, la última respuesta
             // guardada (la fecha de la respuesta dice de cuándo es; la app lo avisa).
-            urlPattern: /^https:\/\/api\.open-meteo\.com\/.*/i,
+            urlPattern: /^https:\/\/(api|marine-api)\.open-meteo\.com\/.*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'open-meteo',

@@ -213,7 +213,7 @@ Cada fase termina con `pnpm build && pnpm test` en verde y una prueba manual en 
 - Prueba en un teléfono Android real y en un iPhone: instalación como PWA, modo avión, pantalla encendida durante la navegación, avisos de arribo.
 - Playwright para los recorridos principales (con la geolocalización simulada).
 
-**Fase 6 · Extras de Drone Forecast** (≈ 1,5 semanas) — el viento animado con pronóstico se adelantó a la fase 5 (capa en el diálogo de Capas); aquí quedan oleaje, gráficos y track
+**Fase 6 · Extras de Drone Forecast** (≈ 1,5 semanas) — ✅ hecha (19/11/2026): pronóstico de un punto con viento, ráfagas y olas (gráficos SVG) y registro de derrota con exportación GPX; el viento animado se adelantó a la fase 5. Pendiente: pronóstico a lo largo de la ruta y perfil de velocidad del recorrido
 - Mapa de **viento con partículas** sobre el mapa náutico (código de Drone Forecast) + **oleaje** de la API Marine de Open-Meteo (altura, período y dirección de ola y mar de fondo).
 - Gráficos SVG: pronóstico de viento y olas del punto o de la ruta; perfil de velocidad del recorrido.
 - **Registro de derrota** (track) en SQLite y exportación GPX: hoy la app no guarda el recorrido.

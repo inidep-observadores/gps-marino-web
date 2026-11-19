@@ -9,6 +9,9 @@ import {
   LocateOff,
   MapPinPlus,
   Route,
+  CloudSun,
+  Circle,
+  Square,
   Minus,
   Navigation,
   Plus,
@@ -30,6 +33,7 @@ import { useGpsStore } from '@/stores/gps'
 import { useMapStore } from '@/stores/map'
 import { useNavigationStore } from '@/stores/navigation'
 import { useUiStore } from '@/stores/ui'
+import { useTracksStore } from '@/stores/tracks'
 import { useWindStore } from '@/stores/wind'
 
 /**
@@ -45,6 +49,7 @@ const map = useMapStore()
 const nav = useNavigationStore()
 const ui = useUiStore()
 const wind = useWindStore()
+const tracks = useTracksStore()
 const { openSaveAt } = usePositionLog()
 const { hasRoute, addLabel, goOrAppend, cancelRoute } = useRouteActions()
 
@@ -109,6 +114,18 @@ const night = computed(() => theme.resolved.value === 'night')
         <LocateOff v-if="!gps.active" class="size-5" />
         <LocateFixed v-else class="size-5" :class="{ 'text-accent': map.following }" />
       </button>
+      <!-- Grabar la derrota (la línea que recorre el buque) -->
+      <button
+        type="button"
+        class="map-fab"
+        :aria-pressed="!!tracks.recording"
+        :aria-label="tracks.recording ? t('tracks.stop') : t('tracks.record')"
+        :title="tracks.recording ? t('tracks.stop') : t('tracks.record')"
+        @click="tracks.recording ? tracks.stop() : tracks.start()"
+      >
+        <Square v-if="tracks.recording" class="size-5 fill-current text-mark-red" />
+        <Circle v-else class="size-5 text-mark-red" />
+      </button>
       <button type="button" class="map-fab" :aria-label="t('layers.title')" :title="t('layers.title')" @click="ui.open('layers')">
         <Layers class="size-5" />
       </button>
@@ -158,6 +175,10 @@ const night = computed(() => theme.resolved.value === 'night')
         <div class="flex flex-wrap justify-center gap-2">
           <button type="button" class="map-chip" :aria-pressed="map.cursorVisible" @click="map.setCursor(!map.cursorVisible)">
             <SquareDashedMousePointer class="size-4" aria-hidden="true" />{{ map.cursorVisible ? t('mapControls.hideCursor') : t('mapControls.showCursor') }}
+          </button>
+          <!-- Pronóstico de viento y olas del punto bajo el cursor (centro del mapa). -->
+          <button type="button" class="map-chip" @click="ui.openPointForecast(map.center)">
+            <CloudSun class="size-4" aria-hidden="true" />{{ t('mapControls.forecast') }}
           </button>
           <button type="button" class="map-chip" @click="map.startMeasuring()">
             <Ruler class="size-4" aria-hidden="true" />{{ t('mapMeasure.start') }}

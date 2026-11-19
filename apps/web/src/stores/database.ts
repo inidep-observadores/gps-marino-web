@@ -4,6 +4,7 @@ import { openDatabase, type AppDatabase } from '@/db/client'
 import type { DbInfo } from '@/db/protocol'
 import { createLayerRepository, type LayerRepository } from '@/repositories/layers'
 import { createRouteRepository, createSettingsRepository, type RouteRepository, type SettingsRepository } from '@/repositories/settings'
+import { createTrackRepository, type TrackRepository } from '@/repositories/tracks'
 import { createWaypointRepository, type WaypointRepository } from '@/repositories/waypoints'
 
 export interface Repositories {
@@ -11,6 +12,7 @@ export interface Repositories {
   layers: LayerRepository
   settings: SettingsRepository
   route: RouteRepository
+  tracks: TrackRepository
 }
 
 export function createRepositories(db: AppDatabase): Repositories {
@@ -19,6 +21,7 @@ export function createRepositories(db: AppDatabase): Repositories {
     layers: createLayerRepository(db),
     settings: createSettingsRepository(db),
     route: createRouteRepository(db),
+    tracks: createTrackRepository(db),
   }
 }
 

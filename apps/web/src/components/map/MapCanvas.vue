@@ -38,6 +38,7 @@ import { useGpsStore } from '@/stores/gps'
 import { useLayersStore } from '@/stores/layers'
 import { useMapStore } from '@/stores/map'
 import { useNavigationStore } from '@/stores/navigation'
+import { useTracksStore } from '@/stores/tracks'
 import { useWaypointsStore } from '@/stores/waypoints'
 import { useWindStore } from '@/stores/wind'
 import { syncVectorLayers, tappableLayerIds } from './mapLayers'
@@ -58,6 +59,7 @@ const nav = useNavigationStore()
 const waypoints = useWaypointsStore()
 const layers = useLayersStore()
 const wind = useWindStore()
+const tracks = useTracksStore()
 
 const container = ref<HTMLDivElement | null>(null)
 const windCanvas = ref<HTMLCanvasElement | null>(null)
@@ -157,6 +159,7 @@ function addOverlay(m: MapLibre) {
   // todos los símbolos de la tesela de esa fuente; así los íconos se siguen viendo aunque no haya etiquetas.
   m.addSource('waypoints-labels', { type: 'geojson', data: waypointsData() })
   m.addSource('measure', { type: 'geojson', data: measureData() })
+  m.addSource('tracks', { type: 'geojson', data: tracks.drawn as never })
   m.addSource('vessel', { type: 'geojson', data: vesselData() })
 
   const halo = { 'text-halo-color': colors.canvas, 'text-halo-width': 1.6 }
@@ -167,6 +170,15 @@ function addOverlay(m: MapLibre) {
     source: 'rings-labels',
     layout: { 'text-field': ['concat', ['to-string', ['get', 'radiusNm']], ' Nm'], 'text-font': LABEL_FONT, 'text-size': 11, 'text-allow-overlap': true },
     paint: { 'text-color': colors.accent, ...halo },
+  })
+  // Derrotas grabadas (azul) y la que se está grabando (rojo, para distinguirla del resto).
+  m.addLayer({ id: 'tracks-casing', type: 'line', source: 'tracks', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': colors.canvas, 'line-width': 5, 'line-opacity': 0.6 } })
+  m.addLayer({
+    id: 'tracks',
+    type: 'line',
+    source: 'tracks',
+    layout: { 'line-cap': 'round', 'line-join': 'round' },
+    paint: { 'line-color': ['case', ['get', 'active'], colors.markRed, colors.markBlue], 'line-width': 2.5 },
   })
   m.addLayer({ id: 'route-casing', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': colors.canvas, 'line-width': 6, 'line-opacity': 0.7 } })
   m.addLayer({ id: 'route', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': colors.caution, 'line-width': 3 } })
@@ -445,6 +457,7 @@ watch(
     set('waypoints-labels', data)
   },
 )
+watch(() => tracks.drawn, (d) => set('tracks', d))
 watch(() => [mapStore.measurePoints, mapStore.measuring] as const, () => set('measure', measureData()))
 watch(
   () => [layers.renderLayers, layers.showLabels, layers.imported] as const,

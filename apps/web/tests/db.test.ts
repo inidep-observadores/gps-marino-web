@@ -21,7 +21,7 @@ describe('motor SQL y migraciones', () => {
       params: [],
       method: 'all',
     })
-    expect(rows.flat()).toEqual(['__migrations', 'imported_layers', 'meta', 'route_points', 'settings', 'waypoints'])
+    expect(rows.flat()).toEqual(['__migrations', 'imported_layers', 'meta', 'route_points', 'settings', 'track_points', 'tracks', 'waypoints'])
   })
 
   it('una migración que falla no deja cambios a medias', async () => {

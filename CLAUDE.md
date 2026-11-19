@@ -29,7 +29,8 @@ packages/shared/      TS puro (sin Vue ni Nest), con tests: dominio + esquemas z
                       medición (mapGeometry.ts), capas GeoJSON/GPX con simplestyle, colores Garmin, etiquetas de
                       áreas con polylabel y elementos ocultos (layers.ts; el GPX recibe el parser XML inyectado),
                       teselas XYZ y estimación de descargas (tiles.ts), campo de viento: grilla, interpolación,
-                      bandas en nudos y pedido a Open-Meteo (wind.ts)
+                      bandas en nudos, Beaufort y pedido a Open-Meteo (wind.ts), pronóstico de un punto con olas
+                      (pointForecast.ts), derrota: cuándo grabar un punto, distancia, estadísticas y GPX (track.ts)
 apps/web/
   src/db/             schema.ts (Drizzle), migrations/ (generadas), migrations.ts (glob de Vite),
                       engine.ts (motor SQL síncrono sobre sqlite-wasm: lo usan el worker y los tests),
@@ -142,6 +143,15 @@ apps/web/
   solo NO comercial. El canvas está `hidden` con la capa apagada: al encender hay que `resize()` antes de sembrar partículas.
 - **Mapas sin conexión por zona:** `OfflineMapsSection` (en Configuración del mapa) baja las teselas de la vista (+15 % de
   margen) hasta z9/11/13 con tope de 8000 teselas; 6 en paralelo, cancelable, se corta si se cae la red.
+- **Pronóstico de punto (fase 6):** botón "Pronóstico" del mapa → hoja con lecturas de la hora elegida y dos gráficos SVG a mano
+  (`forecast/HourlyChart.vue`: viento y ráfagas en nudos, olas y mar de fondo en metros; tocar el gráfico elige la hora y
+  mueve el cursor de ambos). Dos pedidos en paralelo: Open-Meteo Forecast y **Marine** (`marine-api.open-meteo.com`); si el
+  punto está en tierra o sin cobertura marina, las olas quedan en `null` y solo se muestra el viento. Ambos dominios van por
+  el service worker (NetworkFirst, 4 días): sin conexión se ve el último pronóstico de ESE mismo punto.
+- **Derrotas:** tablas `tracks` + `track_points` (migración 0001). `stores/tracks.ts` graba mientras el GPS está activo
+  (`shouldRecord`: cada 20 m, o 8 m si hay giro de 20°, mín. 3 s, descarta precisión peor que 50 m), guarda de a 10 puntos o
+  30 s y al ocultar la app. Si el GPS se apaga, la derrota se cierra; si la app se cierra grabando, al abrir se cierra con su
+  último punto. Se dibujan en el mapa (azul; la que se graba, en rojo), se exportan en GPX desde el panel de Capas.
 - `typescript` fijado en 5.x por `vue-tsc`. pnpm rechaza versiones publicadas hace poco (`minimumReleaseAge`): fijar una versión con al menos un par de semanas en vez de agregar excepciones.
 - Íconos PWA (`public/*.png`) generados desde `public/icon.svg` con Chrome headless (el maskable con la marca al 72 %).
 - En la web no hay GPS en segundo plano: con la pantalla apagada o la pestaña oculta el navegador suspende la geolocalización. Decisión: no hace falta (se usa Wake Lock mientras se navega).

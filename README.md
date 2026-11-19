@@ -28,3 +28,5 @@ Fase 3 (mapa) terminada: MapLibre a pantalla completa con mapa estándar, satél
 Fase 4 (capas) terminada: capas base de la app Flutter (costas, áreas generales, vedas, vieira, centolla, langostino) con sus colores y etiquetas, siempre disponibles sin conexión; importación de GeoJSON, GPX y ZIP con estilos simplestyle y colores Garmin, descripciones de puntos, elementos ocultos y ficha con distancia, rumbo y ETA. Próximo: fase 5 (sin conexión y pruebas en dispositivo).
 
 Fase 5 (en curso): descarga de zonas del mapa para usar sin conexión y capa de viento con pronóstico (animación sobre el mapa, selector de fecha y hora, caché sin conexión). Falta probar en teléfonos reales (ver PLAN.md §8). Próximo: fase 6 (oleaje, gráficos y track).
+
+Fase 6 terminada: pronóstico de un punto del mapa (viento, ráfagas, olas y mar de fondo, con gráficos) y registro de derrota (grabación, dibujo en el mapa y exportación GPX). Próximo: fase 7 (API NestJS) de la etapa 2.

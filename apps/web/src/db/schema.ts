@@ -1,4 +1,4 @@
-import { index, integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { index, integer, primaryKey, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import type { MarkColor, MarkIcon, LayerFormat } from '@gpsm/shared'
 
 /**
@@ -76,3 +76,37 @@ export const meta = sqliteTable('meta', {
   key: text('key').primaryKey(),
   value: text('value').notNull(),
 })
+
+/**
+ * Derrotas grabadas. La cabecera se sincroniza como cualquier entidad; los puntos (`track_points`) son datos hijos
+ * que no se editan: se agregan en orden (`seq`) mientras se graba y se borran junto con la derrota.
+ */
+export const tracks = sqliteTable(
+  'tracks',
+  {
+    ...syncColumns,
+    name: text('name').notNull(),
+    startedAt: integer('started_at').notNull(),
+    /** `null` mientras se está grabando. */
+    endedAt: integer('ended_at'),
+    distanceNm: real('distance_nm').notNull().default(0),
+    pointCount: integer('point_count').notNull().default(0),
+    /** Mostrar la derrota en el mapa. */
+    visible: integer('visible', { mode: 'boolean' }).notNull().default(true),
+  },
+  (t) => [index('tracks_started_at_idx').on(t.startedAt)],
+)
+
+export const trackPoints = sqliteTable(
+  'track_points',
+  {
+    trackId: text('track_id').notNull(),
+    seq: integer('seq').notNull(),
+    t: integer('t').notNull(),
+    lat: real('lat').notNull(),
+    lon: real('lon').notNull(),
+    speedKn: real('speed_kn'),
+    courseDeg: real('course_deg'),
+  },
+  (t) => [primaryKey({ columns: [t.trackId, t.seq] })],
+)

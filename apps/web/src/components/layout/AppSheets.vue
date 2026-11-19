@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import DestinationPicker from '@/components/gps/DestinationPicker.vue'
 import ConfirmHost from '@/components/layout/ConfirmHost.vue'
 import ToastHost from '@/components/layout/ToastHost.vue'
+import PointForecastPanel from '@/components/forecast/PointForecastPanel.vue'
 import LayersPanel from '@/components/map/LayersPanel.vue'
 import MapSettingsPanel from '@/components/map/MapSettingsPanel.vue'
 import SettingsPanel from '@/components/panels/SettingsPanel.vue'
@@ -30,6 +31,7 @@ const exportSheet = bind('export')
 const restore = bind('restore')
 const mapSettings = bind('mapSettings')
 const layersSheet = bind('layers')
+const forecastSheet = bind('pointForecast')
 
 const waypointTitle = computed(() =>
   ui.editing?.kind === 'edit' ? t('waypointForm.editTitle') : t('savePosition.title'),
@@ -66,6 +68,10 @@ const waypointKey = computed(() =>
   </BaseSheet>
   <BaseSheet v-model:open="layersSheet" :title="t('layers.title')">
     <LayersPanel v-if="layersSheet" />
+  </BaseSheet>
+  <BaseSheet v-model:open="forecastSheet" :title="t('pointForecast.title')">
+    <!-- La clave recrea el panel (y su pedido) para cada punto. -->
+    <PointForecastPanel v-if="forecastSheet && ui.forecastPoint" :key="`${ui.forecastPoint.lat},${ui.forecastPoint.lon}`" :lat="ui.forecastPoint.lat" :lon="ui.forecastPoint.lon" />
   </BaseSheet>
   <ConfirmHost />
   <ToastHost />

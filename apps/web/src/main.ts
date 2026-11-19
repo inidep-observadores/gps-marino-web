@@ -8,6 +8,7 @@ import { useLayersStore } from './stores/layers'
 import { useMapStore } from './stores/map'
 import { useNavigationStore } from './stores/navigation'
 import { usePrefsStore } from './stores/prefs'
+import { useTracksStore } from './stores/tracks'
 import { useWaypointsStore } from './stores/waypoints'
 import { useWindStore } from './stores/wind'
 import './style.css'
@@ -33,9 +34,10 @@ const gps = useGpsStore()
 const mapStore = useMapStore()
 const layers = useLayersStore()
 const wind = useWindStore()
+const tracks = useTracksStore()
 void database
   .open()
-  .then(() => Promise.all([navigation.load(), waypoints.load(), mapStore.load(), layers.load(), wind.load()]))
+  .then(() => Promise.all([navigation.load(), waypoints.load(), mapStore.load(), layers.load(), wind.load(), tracks.load()]))
   .catch((e) => console.error('[db]', e))
 
 // Como la app Flutter, el GPS arranca solo al abrir... si el permiso ya estaba concedido (no se pide sin un gesto).
@@ -52,6 +54,7 @@ if (import.meta.env.DEV) {
       map: mapStore,
       layers,
       wind,
+      tracks,
       /** `__gpsm.simulate({ lat: -38, lon: -57.5, speedKn: 8, courseDeg: 135 })` → devuelve el control (`.set({...})`). */
       simulate(opts: Parameters<typeof createSimulatedSource>[0]) {
         const src = createSimulatedSource(opts)

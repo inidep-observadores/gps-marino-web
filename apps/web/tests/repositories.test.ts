@@ -156,3 +156,37 @@ describe('WaypointRepository.importMany (restaurar copias)', () => {
     expect(await repo.count()).toBe(450)
   })
 })
+
+describe('TrackRepository', () => {
+  const P = (i: number) => ({ t: 1000 * i, lat: -38 - i * 0.001, lon: -57.5, speedKn: 5, courseDeg: 180 })
+
+  it('graba por tandas, acumula distancia y puntos en orden', async () => {
+    const { createTrackRepository } = await import('@/repositories/tracks')
+    const repo = createTrackRepository(db, clock)
+    const t = await repo.create('Derrota 1', 0)
+    await repo.append(t.id, [P(0), P(1), P(2)])
+    await repo.append(t.id, [P(3), P(4)])
+    const [row] = await repo.list()
+    expect(row!.pointCount).toBe(5)
+    // 4 tramos de 0,001° de latitud ≈ 0,06 Nm cada uno
+    expect(row!.distanceNm).toBeCloseTo(4 * 0.06, 2)
+    const pts = await repo.points(t.id)
+    expect(pts.map((p) => p.t)).toEqual([0, 1000, 2000, 3000, 4000])
+    expect(await repo.unfinished()).toHaveLength(1)
+    await repo.finish(t.id, 4000)
+    expect(await repo.unfinished()).toEqual([])
+  })
+
+  it('visibilidad, nombre y borrado (baja lógica; los puntos se eliminan)', async () => {
+    const { createTrackRepository } = await import('@/repositories/tracks')
+    const repo = createTrackRepository(db, clock)
+    const t = await repo.create('A', 0)
+    await repo.append(t.id, [P(0), P(1)])
+    await repo.setVisible(t.id, false)
+    await repo.rename(t.id, 'Lance 7')
+    expect((await repo.list())[0]).toMatchObject({ name: 'Lance 7', visible: false })
+    await repo.remove(t.id)
+    expect(await repo.list()).toEqual([])
+    expect(await repo.points(t.id)).toEqual([])
+  })
+})
