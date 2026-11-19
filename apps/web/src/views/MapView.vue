@@ -101,7 +101,10 @@ const night = computed(() => theme.resolved.value === 'night')
 
     <!-- Cursor: centro del mapa -->
     <div v-if="map.cursorVisible" class="map-crosshair" aria-hidden="true">
-      <Crosshair class="size-10" :stroke-width="1.5" />
+      <!-- La mira es semitransparente para que el objetivo se siga viendo debajo; el punto central queda más firme -->
+      <Crosshair class="size-10 opacity-65" :stroke-width="1.5" />
+      <!-- Punto central: marca el pixel exacto del cursor (el centro del mapa) para elegir con precisión -->
+      <span class="absolute top-1/2 left-1/2 size-[5px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink opacity-90"></span>
     </div>
 
     <div class="map-overlay-top">
