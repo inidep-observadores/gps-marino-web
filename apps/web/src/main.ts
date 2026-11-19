@@ -1,6 +1,7 @@
 import { createApp, watch } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
+import { startPwaInstall } from './composables/usePwaInstall'
 import { i18n } from './i18n'
 import { useDatabaseStore } from './stores/database'
 import { useGpsStore } from './stores/gps'
@@ -12,6 +13,9 @@ import { useTracksStore } from './stores/tracks'
 import { useWaypointsStore } from './stores/waypoints'
 import { useWindStore } from './stores/wind'
 import './style.css'
+
+// `beforeinstallprompt` puede dispararse apenas carga la página: se escucha antes de montar nada.
+startPwaInstall()
 
 const app = createApp(App)
 app.use(createPinia()).use(i18n)

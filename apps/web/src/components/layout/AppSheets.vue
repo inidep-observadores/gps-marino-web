@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DestinationPicker from '@/components/gps/DestinationPicker.vue'
 import ConfirmHost from '@/components/layout/ConfirmHost.vue'
+import InstallPrompt from '@/components/layout/InstallPrompt.vue'
 import ToastHost from '@/components/layout/ToastHost.vue'
 import PointForecastPanel from '@/components/forecast/PointForecastPanel.vue'
 import LayersPanel from '@/components/map/LayersPanel.vue'
@@ -73,6 +74,7 @@ const waypointKey = computed(() =>
     <!-- La clave recrea el panel (y su pedido) para cada punto. -->
     <PointForecastPanel v-if="forecastSheet && ui.forecastPoint" :key="`${ui.forecastPoint.lat},${ui.forecastPoint.lon}`" :lat="ui.forecastPoint.lat" :lon="ui.forecastPoint.lon" />
   </BaseSheet>
+  <InstallPrompt />
   <ConfirmHost />
   <ToastHost />
 </template>

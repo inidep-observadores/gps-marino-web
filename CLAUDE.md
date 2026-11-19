@@ -152,6 +152,7 @@ apps/web/
   (`shouldRecord`: cada 20 m, o 8 m si hay giro de 20°, mín. 3 s, descarta precisión peor que 50 m), guarda de a 10 puntos o
   30 s y al ocultar la app. Si el GPS se apaga, la derrota se cierra; si la app se cierra grabando, al abrir se cierra con su
   último punto. Se dibujan en el mapa (azul; la que se graba, en rojo), se exportan en GPX desde el panel de Capas.
+- **Instalar la app (PWA):** replica Viaja MDP. `startPwaInstall()` (main.ts, antes de montar) captura `beforeinstallprompt`; `layout/InstallPrompt.vue` (en `AppSheets`) sugiere instalar 6 s después. "Ahora no" o cerrar la hoja = silencio de 24 h (`gpsm.install.snoozed`, instante en ms); "No volver a mostrar" = silencio permanente (`gpsm.install.muted`); ambas en localStorage del dispositivo. Ajustes → "Instalar la app" ignora ambos silencios. Ya instalada (display-mode) no se sugiere; iOS muestra los pasos de "Compartir". Reglas puras en `logic/installPrompt.ts`.
 - `typescript` fijado en 5.x por `vue-tsc`. pnpm rechaza versiones publicadas hace poco (`minimumReleaseAge`): fijar una versión con al menos un par de semanas en vez de agregar excepciones.
 - Íconos PWA (`public/*.png`) generados desde `public/icon.svg` con Chrome headless (el maskable con la marca al 72 %).
 - En la web no hay GPS en segundo plano: con la pantalla apagada o la pestaña oculta el navegador suspende la geolocalización. Decisión: no hace falta (se usa Wake Lock mientras se navega).

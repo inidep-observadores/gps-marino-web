@@ -13,7 +13,7 @@ import type { Status } from '@/types'
 const { t, locale } = useI18n()
 const prefs = usePrefsStore()
 const database = useDatabaseStore()
-const { canInstall, install } = usePwaInstall()
+const { available: canInstall, requestInstall } = usePwaInstall()
 
 const themeOptions = computed<SegmentOption<ThemePreference>[]>(() => [
   { value: 'system', label: t('settings.themeSystem'), icon: Monitor },
@@ -109,7 +109,7 @@ const version = __APP_VERSION__
     </section>
 
     <section v-if="canInstall" class="flex flex-col gap-2">
-      <button type="button" class="btn-primary" @click="install()">
+      <button type="button" class="btn-primary" @click="requestInstall()">
         <Download class="size-4" aria-hidden="true" />{{ t('settings.install') }}
       </button>
       <p class="text-caption text-center">{{ t('settings.installHint') }}</p>
