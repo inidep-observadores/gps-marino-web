@@ -200,3 +200,34 @@ export function beaufortForce(speedMs: number): number {
   for (let i = 0; i < BEAUFORT_MIN_KN.length; i++) if (kn >= BEAUFORT_MIN_KN[i]!) f = i
   return f
 }
+
+// ---------------------------------------------------------------------------------------------------------------
+// Flechas de viento (barbas): la simbología meteorológica estándar
+
+export interface WindBarbParts {
+  /** Viento calmo (< 2,5 nudos): se dibuja un círculo, sin asta. */
+  calm: boolean
+  /** Banderines (triángulos): 50 nudos cada uno. */
+  pennants: number
+  /** Plumas largas: 10 nudos cada una. */
+  full: number
+  /** Pluma corta: 5 nudos (a lo sumo una). */
+  half: boolean
+}
+
+/** Descompone la velocidad (nudos) en banderines (50), plumas largas (10) y pluma corta (5), redondeando a 5 nudos. */
+export function windBarbParts(speedKn: number): WindBarbParts {
+  const rounded = Math.round(Math.max(0, speedKn) / 5) * 5
+  if (rounded === 0) return { calm: true, pennants: 0, full: 0, half: false }
+  const pennants = Math.floor(rounded / 50)
+  const rest = rounded - pennants * 50
+  return { calm: false, pennants, full: Math.floor(rest / 10), half: rest % 10 === 5 }
+}
+
+/**
+ * Lado del asta en el que van las plumas (convención OMM): en el hemisferio norte, a la derecha (sentido de las agujas
+ * del reloj, mirando desde la estación hacia el extremo del asta); en el sur, a la izquierda (imagen espejo).
+ */
+export function windBarbSide(lat: number): 'right' | 'left' {
+  return lat < 0 ? 'left' : 'right'
+}

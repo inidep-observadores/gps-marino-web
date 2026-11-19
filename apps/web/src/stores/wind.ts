@@ -19,6 +19,9 @@ import { useDatabaseStore } from './database'
 import { useMapStore } from './map'
 
 const ENABLED_KEY = 'layers.wind'
+const STYLE_KEY = 'layers.windStyle'
+/** Cómo se dibuja el viento: partículas animadas o flechas (barbas) con la escala en nudos. */
+export type WindStyle = 'particles' | 'barbs'
 /** Días de pronóstico que se piden (la grilla trae todas las horas: cambiar de hora no usa la red). */
 export const WIND_DAYS = 4
 /** Espera tras dejar de mover el mapa antes de pedir una grilla nueva. */
@@ -38,6 +41,7 @@ export const useWindStore = defineStore('wind', () => {
   const mapStore = useMapStore()
 
   const enabled = ref(false)
+  const windStyle = ref<WindStyle>('particles')
   const grid = shallowRef<WindGrid | null>(null)
   const loading = ref(false)
   const error = ref<WindError>(null)
@@ -54,7 +58,14 @@ export const useWindStore = defineStore('wind', () => {
   setInterval(() => (now.value = Date.now()), 60_000)
 
   async function load() {
-    enabled.value = await (await database.ready()).settings.get(ENABLED_KEY, false)
+    const settings = (await database.ready()).settings
+    enabled.value = await settings.get(ENABLED_KEY, false)
+    const saved = await settings.get<string>(STYLE_KEY, 'particles')
+    windStyle.value = saved === 'barbs' ? 'barbs' : 'particles'
+  }
+  async function setStyle(v: WindStyle) {
+    windStyle.value = v
+    await (await database.ready()).settings.set(STYLE_KEY, v)
   }
   async function setEnabled(v: boolean) {
     enabled.value = v
@@ -160,6 +171,8 @@ export const useWindStore = defineStore('wind', () => {
 
   return {
     enabled,
+    windStyle,
+    setStyle,
     grid,
     loading,
     error,

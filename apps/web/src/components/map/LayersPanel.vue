@@ -3,13 +3,14 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Download, Eye, EyeOff, FileUp, MessageSquareText, Route as RouteIcon, Trash2, Wind } from '@lucide/vue'
 import type { BaseGroup, ImportedLayer } from '@gpsm/shared'
+import SegmentedControl, { type SegmentOption } from '@/components/ui/SegmentedControl.vue'
 import ToggleRow from '@/components/ui/ToggleRow.vue'
 import { useConfirm } from '@/composables/useConfirm'
 import { useFormat } from '@/composables/useFormat'
 import { BASE_LAYER_GROUPS } from '@/layers/baseLayers'
 import { LayerImportError, useLayersStore } from '@/stores/layers'
 import { useTracksStore } from '@/stores/tracks'
-import { useWindStore } from '@/stores/wind'
+import { useWindStore, type WindStyle } from '@/stores/wind'
 import { useToastStore } from '@/stores/toast'
 
 /**
@@ -22,6 +23,11 @@ const layers = useLayersStore()
 const wind = useWindStore()
 const tracks = useTracksStore()
 const windOn = computed({ get: () => wind.enabled, set: (v: boolean) => void wind.setEnabled(v) })
+const windStyle = computed({ get: () => wind.windStyle, set: (v: WindStyle) => void wind.setStyle(v) })
+const windStyleOptions = computed<SegmentOption<WindStyle>[]>(() => [
+  { value: 'particles', label: t('layers.windStyleParticles') },
+  { value: 'barbs', label: t('layers.windStyleBarbs') },
+])
 const toast = useToastStore()
 const confirm = useConfirm()
 
@@ -97,6 +103,11 @@ const featureCount = (l: ImportedLayer) => layers.importedParsed.get(l.id)?.feat
     <section class="flex flex-col gap-3">
       <h3 class="eyebrow flex items-center gap-1.5"><Wind class="size-3.5" aria-hidden="true" />{{ t('layers.weather') }}</h3>
       <ToggleRow v-model="windOn" :label="t('layers.wind')" :hint="t('layers.windHint')" />
+      <!-- Cómo dibujar el viento: solo con la capa encendida. -->
+      <template v-if="wind.enabled">
+        <SegmentedControl v-model="windStyle" :options="windStyleOptions" :label="t('layers.windStyle')" />
+        <p v-if="wind.windStyle === 'barbs'" class="text-caption">{{ t('layers.windBarbsLegend') }}</p>
+      </template>
       <p class="text-caption">{{ t('layers.windOffline') }}</p>
     </section>
 

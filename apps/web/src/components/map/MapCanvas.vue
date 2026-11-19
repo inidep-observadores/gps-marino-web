@@ -44,6 +44,7 @@ import { useWindStore } from '@/stores/wind'
 import { syncVectorLayers, tappableLayerIds } from './mapLayers'
 import { markImage, vesselImage, vesselStillImage } from './mapImages'
 import { GLYPHS, LABEL_FONT, LABEL_FONT_BOLD, SEAMARKS_ATTR, SEAMARKS_TILES, palette, rasterBaseStyle, type Palette } from './mapStyles'
+import { WindBarbs } from './windBarbs'
 import { WindParticles } from './windParticles'
 import { OFM_PROTOCOL, loadStandardStyle, ofmTileHandler, trimTileCache } from './offlineTiles'
 
@@ -70,6 +71,7 @@ let colors: Palette
 let observer: ResizeObserver | null = null
 /** Partículas de la capa de viento (canvas encima del mapa). */
 let particles: WindParticles | null = null
+let barbs: WindBarbs | null = null
 /**
  * Las capas propias ya están armadas sobre el estilo actual. No se usa `map.isStyleLoaded()`: da falso mientras se
  * bajan teselas y se perderían cambios (capas importadas, íconos nuevos).
@@ -330,15 +332,17 @@ onMounted(() => {
   })
   // Viento: el campo se pasa a pantalla de nuevo al terminar de mover (durante el gesto se detiene la animación).
   map.on('movestart', () => {
-    if (wind.enabled) particles?.pause()
-    if (wind.enabled) particles?.clear()
+    if (!wind.enabled) return
+    particles?.pause()
+    particles?.clear()
+    barbs?.clear()
   })
   map.on('moveend', () => {
     if (!map) return
     const c = map.getCenter()
     mapStore.saveCamera({ lat: c.lat, lon: c.lng, zoom: map.getZoom() })
     wind.setView(mapStore.controller!.getBounds())
-    if (wind.enabled) particles?.setField(wind.field)
+    if (wind.enabled) showWind(false)
   })
   // Si el usuario mueve el mapa con el dedo, deja de seguir al buque (como en Flutter).
   map.on('dragstart', () => (mapStore.following = false))
@@ -377,10 +381,13 @@ onMounted(() => {
   if (windCanvas.value) {
     particles = new WindParticles(windCanvas.value, map, windColors(), window.matchMedia('(prefers-reduced-motion: reduce)').matches)
     particles.resize()
+    barbs = new WindBarbs(windCanvas.value, map, barbColors())
   }
   observer = new ResizeObserver(() => {
     map?.resize()
     particles?.resize()
+    // Las flechas usan el tamaño y la transformación que acaba de fijar `particles.resize()`.
+    if (wind.enabled && wind.windStyle === 'barbs') barbs?.draw()
   })
   observer.observe(container.value)
   // Primera grilla: ya hay una vista (la cámara guardada).
@@ -396,6 +403,30 @@ onBeforeUnmount(() => {
   map = null
 })
 
+/** Las flechas llevan además un contorno del color del fondo. */
+function barbColors() {
+  return { ...windColors(), halo: palette().canvas }
+}
+
+/**
+ * Dibuja el viento con el estilo elegido (partículas animadas o flechas) sobre el mismo canvas.
+ * `reseed`: al cambiar de estilo o encender la capa se reinicia todo; al mover el mapa solo se recalcula.
+ */
+function showWind(_reseed = true) {
+  if (!wind.enabled) {
+    particles?.setField(null)
+    barbs?.setField(null)
+    return
+  }
+  if (wind.windStyle === 'barbs') {
+    particles?.setField(null)
+    barbs?.setField(wind.field)
+  } else {
+    barbs?.setField(null)
+    particles?.setField(wind.field)
+  }
+}
+
 /** Colores de las partículas por intensidad (tokens del tema, convertidos a rgb para el canvas). */
 function windColors() {
   const c = palette()
@@ -409,21 +440,23 @@ watch(
   () => wind.field,
   (f) => {
     if (!wind.enabled) return
-    particles?.updateField(f)
+    if (wind.windStyle === 'barbs') barbs?.setField(f)
+    else particles?.updateField(f)
   },
 )
+watch(() => wind.windStyle, () => showWind())
 watch(
   () => wind.enabled,
   (on) => {
     if (!on) {
-      particles?.setField(null)
+      showWind()
       return
     }
     // El canvas estaba oculto (tamaño 0): se muestra y se ajusta antes de sembrar las partículas.
     void nextTick(() => {
       particles?.resize()
       if (map && mapStore.controller) wind.setView(mapStore.controller.getBounds())
-      particles?.setField(wind.field)
+      showWind()
     })
   },
 )
@@ -467,7 +500,13 @@ watch(
 )
 // Tipo de mapa, tema o señales náuticas: otro estilo; las capas propias vuelven en `style.load`.
 watch(() => [mapStore.settings.mapType, mapStore.settings.seamarks, theme.resolved.value] as const, applyStyle)
-watch(() => theme.resolved.value, () => particles?.setColors(windColors()))
+watch(
+  () => theme.resolved.value,
+  () => {
+    particles?.setColors(windColors())
+    barbs?.setColors(barbColors())
+  },
+)
 </script>
 
 <template>

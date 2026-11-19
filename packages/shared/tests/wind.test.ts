@@ -13,6 +13,8 @@ import {
   sampleField,
   windBand,
   windFromUV,
+  windBarbParts,
+  windBarbSide,
   windVector,
 } from '../src'
 
@@ -144,5 +146,31 @@ describe('escala Beaufort', () => {
     expect(beaufortForce(ms(63.9))).toBe(11)
     expect(beaufortForce(ms(64))).toBe(12)
     expect(beaufortForce(ms(150))).toBe(12)
+  })
+})
+
+describe('flechas de viento (barbas)', () => {
+  it('descompone la velocidad en banderines, plumas largas y cortas', () => {
+    expect(windBarbParts(0)).toEqual({ calm: true, pennants: 0, full: 0, half: false })
+    expect(windBarbParts(2.4).calm).toBe(true)
+    expect(windBarbParts(2.5)).toEqual({ calm: false, pennants: 0, full: 0, half: true }) // 5 nudos
+    expect(windBarbParts(10)).toEqual({ calm: false, pennants: 0, full: 1, half: false })
+    expect(windBarbParts(17)).toEqual({ calm: false, pennants: 0, full: 1, half: true }) // redondea a 15
+    expect(windBarbParts(23)).toEqual({ calm: false, pennants: 0, full: 2, half: true }) // redondea a 25
+    expect(windBarbParts(50)).toEqual({ calm: false, pennants: 1, full: 0, half: false })
+    expect(windBarbParts(67)).toEqual({ calm: false, pennants: 1, full: 1, half: true }) // redondea a 65
+    expect(windBarbParts(112)).toEqual({ calm: false, pennants: 2, full: 1, half: false }) // redondea a 110
+  })
+  it('ignora velocidades negativas', () => {
+    expect(windBarbParts(-3).calm).toBe(true)
+  })
+})
+
+describe('lado de las plumas por hemisferio', () => {
+  it('norte a la derecha, sur a la izquierda', () => {
+    expect(windBarbSide(38)).toBe('right')
+    expect(windBarbSide(0)).toBe('right')
+    expect(windBarbSide(-0.01)).toBe('left')
+    expect(windBarbSide(-45)).toBe('left')
   })
 })

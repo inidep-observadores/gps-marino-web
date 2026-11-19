@@ -141,6 +141,7 @@ apps/web/
   Sin conexión: service worker NetworkFirst para `api.open-meteo.com` (4 días) + se conserva la última grilla en memoria; la
   fecha de la respuesta (`Date`) indica de cuándo es el pronóstico. Atribución obligatoria: "Datos: Open-Meteo.com"; uso gratuito
   solo NO comercial. El canvas está `hidden` con la capa apagada: al encender hay que `resize()` antes de sembrar partículas.
+- **Estilo del viento:** en el diálogo de Capas, con la capa encendida, un selector "Partículas / Flechas" (`layers.windStyle` en `settings`, `stores/wind.ts: windStyle`). Las flechas (`windBarbs.ts`, barbas meteorológicas: pluma corta 5 kn, larga 10, triángulo 50; círculo < 2,5 kn; `windBarbParts` en shared) usan el MISMO canvas que las partículas y son estáticas: se redibujan al terminar de mover el mapa o cambiar la hora (`showWind` en `MapCanvas`). El asta apunta hacia donde se origina el viento; las plumas, a la derecha del asta en el hemisferio norte y a la izquierda en el sur (convención OMM, `windBarbSide`).
 - **Mapas sin conexión por zona:** `OfflineMapsSection` (en Configuración del mapa) baja las teselas de la vista (+15 % de
   margen) hasta z9/11/13 con tope de 8000 teselas; 6 en paralelo, cancelable, se corta si se cae la red.
 - **Pronóstico de punto (fase 6):** botón "Pronóstico" del mapa → hoja con lecturas de la hora elegida y dos gráficos SVG a mano
