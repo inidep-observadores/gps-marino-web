@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Anchor, CircleDot, Layers, Map as MapIcon, MoveUpRight, Mountain, Satellite } from '@lucide/vue'
+import OfflineMapsSection from './OfflineMapsSection.vue'
 import RouteSettings from '@/components/panels/RouteSettings.vue'
 import ToggleRow from '@/components/ui/ToggleRow.vue'
 import { useMapStore } from '@/stores/map'
@@ -90,6 +91,8 @@ const setMinutes = (e: Event) => {
         <input class="input numeric w-32" type="number" inputmode="numeric" min="1" max="600" step="1" :value="s.cog.minutes" :disabled="!s.cog.show" @change="setMinutes" />
       </label>
     </section>
+
+    <OfflineMapsSection />
 
     <RouteSettings />
   </div>

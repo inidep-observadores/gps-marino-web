@@ -20,6 +20,7 @@ import {
 } from '@lucide/vue'
 import MapFeatureCard from '@/components/map/MapFeatureCard.vue'
 import MapInfoPanel from '@/components/map/MapInfoPanel.vue'
+import WindTimeControl from '@/components/map/WindTimeControl.vue'
 import { LazyMapCanvas } from '@/components/map/lazyMap'
 import { useFormat } from '@/composables/useFormat'
 import { usePositionLog } from '@/composables/usePositionLog'
@@ -29,6 +30,7 @@ import { useGpsStore } from '@/stores/gps'
 import { useMapStore } from '@/stores/map'
 import { useNavigationStore } from '@/stores/navigation'
 import { useUiStore } from '@/stores/ui'
+import { useWindStore } from '@/stores/wind'
 
 /**
  * Pestaña Mapa a pantalla completa. Controles pensados para el pulgar en un teléfono (Flutter usaba un
@@ -42,6 +44,7 @@ const gps = useGpsStore()
 const map = useMapStore()
 const nav = useNavigationStore()
 const ui = useUiStore()
+const wind = useWindStore()
 const { openSaveAt } = usePositionLog()
 const { hasRoute, addLabel, goOrAppend, cancelRoute } = useRouteActions()
 
@@ -115,6 +118,9 @@ const night = computed(() => theme.resolved.value === 'night')
     </div>
 
     <div class="map-overlay-bottom">
+      <!-- Viento: fecha y hora del pronóstico (se oculta mientras hay ficha o medición, para no apilar tarjetas). -->
+      <WindTimeControl v-if="wind.enabled && !map.selected && !map.measuring" class="mb-2" />
+
       <MapFeatureCard v-if="map.selected" />
 
       <!-- Medición -->

@@ -27,7 +27,9 @@ packages/shared/      TS puro (sin Vue ni Nest), con tests: dominio + esquemas z
                       orden/búsqueda/agrupado por día (waypointList.ts), copias MogData compatibles con Flutter
                       (backup.ts), exportadores GPX/KML/CSV (exporters.ts), geometrías del mapa: anillos, COG, ruta,
                       medición (mapGeometry.ts), capas GeoJSON/GPX con simplestyle, colores Garmin, etiquetas de
-                      áreas con polylabel y elementos ocultos (layers.ts; el GPX recibe el parser XML inyectado)
+                      áreas con polylabel y elementos ocultos (layers.ts; el GPX recibe el parser XML inyectado),
+                      teselas XYZ y estimación de descargas (tiles.ts), campo de viento: grilla, interpolación,
+                      bandas en nudos y pedido a Open-Meteo (wind.ts)
 apps/web/
   src/db/             schema.ts (Drizzle), migrations/ (generadas), migrations.ts (glob de Vite),
                       engine.ts (motor SQL síncrono sobre sqlite-wasm: lo usan el worker y los tests),
@@ -51,7 +53,8 @@ apps/web/
                       panels/ (SettingsPanel, RouteSettings);
                       map/ (MapCanvas: MapLibre, siempre vía lazyMap; mapStyles: tipos de mapa y tokenColor;
                       mapImages: íconos y buque dibujados en canvas; offlineTiles: caché propio de teselas;
-                      mapLayers: capas vectoriales en MapLibre; MapInfoPanel, MapFeatureCard, MapSettingsPanel, LayersPanel)
+                      mapLayers: capas vectoriales en MapLibre; windParticles (canvas de viento), WindTimeControl,
+                      OfflineMapsSection (descarga de zona); MapInfoPanel, MapFeatureCard, MapSettingsPanel, LayersPanel)
   src/layers/         baseLayers (grupos base empaquetados en public/layers, con su token de color)
   src/views/          GpsView, WaypointsView, MapView (por hash en App.vue, con KeepAlive)
   src/i18n/           es.ts (fuente de las claves) y en.ts (tipado contra es)
@@ -129,6 +132,16 @@ apps/web/
   una línea, también los puntos de sus extremos (`relatedFeatureIds`). Ids de elementos: `<capa>|<n>[|<parte>]`.
 - **No usar `map.isStyleLoaded()` para decidir si actualizar capas:** da falso mientras se bajan teselas. `MapCanvas`
   usa su propia marca `overlayReady` (verdadera tras `style.load` + `addOverlay`).
+- **Viento (fase 5):** capa más del diálogo de Capas (`stores/wind.ts`, `settings` clave `layers.wind`). Una grilla de ~48
+  puntos de Open-Meteo con TODAS las horas en un solo pedido (`buildWindGridUrl`): cambiar de hora no usa la red; solo se
+  vuelve a pedir si el mapa sale de la grilla o se acerca mucho. Animación en un canvas encima del mapa
+  (`windParticles.ts`, portado de Drone Forecast; colores por nudos: <10 / 10–21 / 21–33 / >33). `WindTimeControl` (días,
+  deslizador, reproducir, "Ahora") solo aparece con la capa encendida. Horas elegibles: desde la hora actual (`logic/windTime.ts`).
+  Sin conexión: service worker NetworkFirst para `api.open-meteo.com` (4 días) + se conserva la última grilla en memoria; la
+  fecha de la respuesta (`Date`) indica de cuándo es el pronóstico. Atribución obligatoria: "Datos: Open-Meteo.com"; uso gratuito
+  solo NO comercial. El canvas está `hidden` con la capa apagada: al encender hay que `resize()` antes de sembrar partículas.
+- **Mapas sin conexión por zona:** `OfflineMapsSection` (en Configuración del mapa) baja las teselas de la vista (+15 % de
+  margen) hasta z9/11/13 con tope de 8000 teselas; 6 en paralelo, cancelable, se corta si se cae la red.
 - `typescript` fijado en 5.x por `vue-tsc`. pnpm rechaza versiones publicadas hace poco (`minimumReleaseAge`): fijar una versión con al menos un par de semanas en vez de agregar excepciones.
 - Íconos PWA (`public/*.png`) generados desde `public/icon.svg` con Chrome headless (el maskable con la marca al 72 %).
 - En la web no hay GPS en segundo plano: con la pantalla apagada o la pestaña oculta el navegador suspende la geolocalización. Decisión: no hace falta (se usa Wake Lock mientras se navega).

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
-import { polylineNm, type LatLon } from '@gpsm/shared'
+import { polylineNm, type Bounds, type LatLon } from '@gpsm/shared'
 import type { MapType } from '@/components/map/mapStyles'
 import { readJson, writeJson } from '@/composables/storage'
 import { useDatabaseStore } from './database'
@@ -40,6 +40,8 @@ export type SelectedFeature = { kind: 'waypoint'; id: string } | { kind: 'featur
 export interface MapController {
   zoomBy(delta: number): void
   flyTo(p: LatLon, zoom?: number): void
+  /** Rectángulo visible ahora. */
+  getBounds(): Bounds
 }
 
 export const useMapStore = defineStore('map', () => {

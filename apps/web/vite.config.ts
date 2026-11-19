@@ -67,6 +67,18 @@ export default defineConfig({
             },
           },
           {
+            // Pronóstico de viento (Open-Meteo): red primero con espera corta y, sin conexión, la última respuesta
+            // guardada (la fecha de la respuesta dice de cuándo es; la app lo avisa).
+            urlPattern: /^https:\/\/api\.open-meteo\.com\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'open-meteo',
+              networkTimeoutSeconds: 5,
+              expiration: { maxEntries: 20, maxAgeSeconds: 4 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
             // Imágenes satelitales y batimetría (Esri). Más pesadas: tope propio.
             urlPattern: /^https:\/\/(server|services)\.arcgisonline\.com\/.*\/tile\/.*/i,
             handler: 'CacheFirst',

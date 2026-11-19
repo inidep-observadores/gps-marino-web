@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Eye, EyeOff, FileUp, MessageSquareText, Trash2 } from '@lucide/vue'
+import { Eye, EyeOff, FileUp, MessageSquareText, Trash2, Wind } from '@lucide/vue'
 import type { BaseGroup, ImportedLayer } from '@gpsm/shared'
 import ToggleRow from '@/components/ui/ToggleRow.vue'
 import { useConfirm } from '@/composables/useConfirm'
 import { useFormat } from '@/composables/useFormat'
 import { BASE_LAYER_GROUPS } from '@/layers/baseLayers'
 import { LayerImportError, useLayersStore } from '@/stores/layers'
+import { useWindStore } from '@/stores/wind'
 import { useToastStore } from '@/stores/toast'
 
 /**
@@ -17,6 +18,8 @@ import { useToastStore } from '@/stores/toast'
 const { t } = useI18n()
 const f = useFormat()
 const layers = useLayersStore()
+const wind = useWindStore()
+const windOn = computed({ get: () => wind.enabled, set: (v: boolean) => void wind.setEnabled(v) })
 const toast = useToastStore()
 const confirm = useConfirm()
 
@@ -75,6 +78,12 @@ const featureCount = (l: ImportedLayer) => layers.importedParsed.get(l.id)?.feat
       </div>
       <ToggleRow v-model="labels" :label="t('layers.showLabels')" :hint="t('layers.showLabelsHint')" />
       <p class="text-caption">{{ t('layers.baseOffline') }}</p>
+    </section>
+
+    <section class="flex flex-col gap-3">
+      <h3 class="eyebrow flex items-center gap-1.5"><Wind class="size-3.5" aria-hidden="true" />{{ t('layers.weather') }}</h3>
+      <ToggleRow v-model="windOn" :label="t('layers.wind')" :hint="t('layers.windHint')" />
+      <p class="text-caption">{{ t('layers.windOffline') }}</p>
     </section>
 
     <section class="flex flex-col gap-3">

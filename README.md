@@ -26,3 +26,5 @@ Fase 2 (ubicaciones) terminada: alta y edición completas (grados-minutos-hemisf
 Fase 3 (mapa) terminada: MapLibre a pantalla completa con mapa estándar, satélite, híbrido y batimetría (+ señales náuticas), buque con rumbo, seguir al buque, anillos de distancia, línea COG, ruta, ubicaciones con su ícono, cursor (registrar y navegar a esa posición), medición de distancias, ficha de la ubicación tocada y teselas guardadas para usar sin conexión.
 
 Fase 4 (capas) terminada: capas base de la app Flutter (costas, áreas generales, vedas, vieira, centolla, langostino) con sus colores y etiquetas, siempre disponibles sin conexión; importación de GeoJSON, GPX y ZIP con estilos simplestyle y colores Garmin, descripciones de puntos, elementos ocultos y ficha con distancia, rumbo y ETA. Próximo: fase 5 (sin conexión y pruebas en dispositivo).
+
+Fase 5 (en curso): descarga de zonas del mapa para usar sin conexión y capa de viento con pronóstico (animación sobre el mapa, selector de fecha y hora, caché sin conexión). Falta probar en teléfonos reales (ver PLAN.md §8). Próximo: fase 6 (oleaje, gráficos y track).

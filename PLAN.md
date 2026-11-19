@@ -208,12 +208,12 @@ Cada fase termina con `pnpm build && pnpm test` en verde y una prueba manual en 
 - Importar GeoJSON, GPX y ZIP: detección de formato, validación previa, simplestyle-spec, colores Garmin, limpieza de `<time>`, sobrescribir por nombre, eliminar, ocultar elementos sueltos, mostrar descripciones de los puntos.
 - Tests con los archivos reales de `assets/geojson` y GPX de ejemplo como fixtures.
 
-**Fase 5 · Sin conexión y pruebas en dispositivo** (≈ 1,5 semanas)
+**Fase 5 · Sin conexión, viento y pruebas en dispositivo** (≈ 1,5 semanas) — ✅ código hecho (19/11/2026): descarga de zona sin conexión y capa de viento con selector de fecha y hora; **pendiente la prueba en teléfonos reales** (checklist abajo)
 - Precache completo, descarga de zonas del mapa (o PMTiles), indicador de espacio usado.
 - Prueba en un teléfono Android real y en un iPhone: instalación como PWA, modo avión, pantalla encendida durante la navegación, avisos de arribo.
 - Playwright para los recorridos principales (con la geolocalización simulada).
 
-**Fase 6 · Extras de Drone Forecast (fuera de la paridad, a confirmar)** (≈ 1,5 semanas)
+**Fase 6 · Extras de Drone Forecast** (≈ 1,5 semanas) — el viento animado con pronóstico se adelantó a la fase 5 (capa en el diálogo de Capas); aquí quedan oleaje, gráficos y track
 - Mapa de **viento con partículas** sobre el mapa náutico (código de Drone Forecast) + **oleaje** de la API Marine de Open-Meteo (altura, período y dirección de ola y mar de fondo).
 - Gráficos SVG: pronóstico de viento y olas del punto o de la ruta; perfil de velocidad del recorrido.
 - **Registro de derrota** (track) en SQLite y exportación GPX: hoy la app no guarda el recorrido.
@@ -255,3 +255,16 @@ Cada fase termina con `pnpm build && pnpm test` en verde y una prueba manual en 
 6. **Notificaciones en iOS:** solo con la PWA instalada (iOS 16.4+).
 7. **Safari y OPFS:** soportado desde 16.4; se prueba en dispositivo en la fase 5.
 8. **Privacidad:** el texto de permisos actual dice que los datos nunca salen del dispositivo; en la etapa 2 hay que actualizarlo y dejar la sincronización como opcional.
+
+
+## 8. Checklist de prueba en teléfono real (fase 5)
+
+Hacer con la PWA **instalada** en un Android (Chrome) y un iPhone (Safari 16.4+), de ser posible en el barco:
+1. Instalar la app, abrirla una vez con conexión, ver el mapa de la zona y encender el viento (así queda todo guardado).
+2. Descargar la zona de pesca (Configuración del mapa → Mapas sin conexión) con detalle Medio; mirar tiempo y espacio.
+3. **Modo avión**: cerrar y reabrir la app. Deben abrir GPS, Ubicaciones, Mapa con costas y áreas, y la zona descargada.
+4. Viento sin conexión: debe mostrar el último pronóstico guardado con el aviso de "pronóstico guardado de…".
+5. GPS real al aire libre: primer fix, velocidad, rumbo, pantalla encendida, aviso de arribo (notificación y en pantalla).
+6. Registrar una ubicación, exportar la copia (compartir en iPhone; descarga en Android) y restaurarla.
+7. Tema nocturno de noche: legibilidad del mapa, las partículas de viento y los botones.
+8. Cuota de almacenamiento: tras guardar satélite, ¿el navegador conserva la base? (Ajustes → "Protegida contra el borrado").

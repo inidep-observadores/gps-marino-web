@@ -9,7 +9,7 @@
  * medición y el buque. Si el estilo base no llega (sin conexión y sin caché) se usa un estilo local vacío
  * para que el buque, la ruta y las ubicaciones se sigan viendo.
  */
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   addProtocol,
@@ -39,9 +39,11 @@ import { useLayersStore } from '@/stores/layers'
 import { useMapStore } from '@/stores/map'
 import { useNavigationStore } from '@/stores/navigation'
 import { useWaypointsStore } from '@/stores/waypoints'
+import { useWindStore } from '@/stores/wind'
 import { syncVectorLayers, tappableLayerIds } from './mapLayers'
 import { markImage, vesselImage, vesselStillImage } from './mapImages'
 import { GLYPHS, LABEL_FONT, LABEL_FONT_BOLD, SEAMARKS_ATTR, SEAMARKS_TILES, palette, rasterBaseStyle, type Palette } from './mapStyles'
+import { WindParticles } from './windParticles'
 import { OFM_PROTOCOL, loadStandardStyle, ofmTileHandler, trimTileCache } from './offlineTiles'
 
 setWorkerUrl(mapWorkerUrl)
@@ -55,13 +57,17 @@ const mapStore = useMapStore()
 const nav = useNavigationStore()
 const waypoints = useWaypointsStore()
 const layers = useLayersStore()
+const wind = useWindStore()
 
 const container = ref<HTMLDivElement | null>(null)
+const windCanvas = ref<HTMLCanvasElement | null>(null)
 /** El estilo base no se pudo cargar (sin conexión y sin caché): se dibuja sobre un fondo liso. */
 const offlineBase = ref(false)
 let map: MapLibre | null = null
 let colors: Palette
 let observer: ResizeObserver | null = null
+/** Partículas de la capa de viento (canvas encima del mapa). */
+let particles: WindParticles | null = null
 /**
  * Las capas propias ya están armadas sobre el estilo actual. No se usa `map.isStyleLoaded()`: da falso mientras se
  * bajan teselas y se perderían cambios (capas importadas, íconos nuevos).
@@ -310,10 +316,17 @@ onMounted(() => {
       if (mapStore.measuring) set('measure', measureData())
     })
   })
+  // Viento: el campo se pasa a pantalla de nuevo al terminar de mover (durante el gesto se detiene la animación).
+  map.on('movestart', () => {
+    if (wind.enabled) particles?.pause()
+    if (wind.enabled) particles?.clear()
+  })
   map.on('moveend', () => {
     if (!map) return
     const c = map.getCenter()
     mapStore.saveCamera({ lat: c.lat, lon: c.lng, zoom: map.getZoom() })
+    wind.setView(mapStore.controller!.getBounds())
+    if (wind.enabled) particles?.setField(wind.field)
   })
   // Si el usuario mueve el mapa con el dedo, deja de seguir al buque (como en Flutter).
   map.on('dragstart', () => (mapStore.following = false))
@@ -342,20 +355,66 @@ onMounted(() => {
   mapStore.controller = {
     zoomBy: (d) => map?.easeTo({ zoom: map.getZoom() + d, duration: 250 }),
     flyTo: (p, zoom) => map?.easeTo({ center: [p.lon, p.lat], zoom: zoom ?? map.getZoom(), duration: 600 }),
+    getBounds: () => {
+      const b = map!.getBounds()
+      return { west: b.getWest(), south: b.getSouth(), east: b.getEast(), north: b.getNorth() }
+    },
   }
 
-  observer = new ResizeObserver(() => map?.resize())
+  // Capa de viento: el canvas va encima del mapa y no recibe toques (el mapa sigue siendo tocable).
+  if (windCanvas.value) {
+    particles = new WindParticles(windCanvas.value, map, windColors(), window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+    particles.resize()
+  }
+  observer = new ResizeObserver(() => {
+    map?.resize()
+    particles?.resize()
+  })
   observer.observe(container.value)
+  // Primera grilla: ya hay una vista (la cámara guardada).
+  wind.setView(mapStore.controller!.getBounds())
 })
 
 onBeforeUnmount(() => {
   observer?.disconnect()
+  particles?.destroy()
+  particles = null
   mapStore.controller = null
   map?.remove()
   map = null
 })
 
+/** Colores de las partículas por intensidad (tokens del tema, convertidos a rgb para el canvas). */
+function windColors() {
+  const c = palette()
+  return { calm: c.go, fresh: c.caution, strong: c.markOrange, gale: c.stop }
+}
+
 // ---------- Reacciones ----------
+// Viento: otra hora = el mismo campo con otros valores (las partículas en el aire siguen su camino);
+// apagar la capa detiene y borra la animación; encenderla pide la grilla de lo visible y la arranca.
+watch(
+  () => wind.field,
+  (f) => {
+    if (!wind.enabled) return
+    particles?.updateField(f)
+  },
+)
+watch(
+  () => wind.enabled,
+  (on) => {
+    if (!on) {
+      particles?.setField(null)
+      return
+    }
+    // El canvas estaba oculto (tamaño 0): se muestra y se ajusta antes de sembrar las partículas.
+    void nextTick(() => {
+      particles?.resize()
+      if (map && mapStore.controller) wind.setView(mapStore.controller.getBounds())
+      particles?.setField(wind.field)
+    })
+  },
+)
 watch(
   () => [gps.current, gps.courseDeg, gps.speedKn, mapStore.settings.showVessel, mapStore.settings.rings, mapStore.settings.cog] as const,
   () => {
@@ -395,11 +454,14 @@ watch(
 )
 // Tipo de mapa, tema o señales náuticas: otro estilo; las capas propias vuelven en `style.load`.
 watch(() => [mapStore.settings.mapType, mapStore.settings.seamarks, theme.resolved.value] as const, applyStyle)
+watch(() => theme.resolved.value, () => particles?.setColors(windColors()))
 </script>
 
 <template>
   <div class="relative size-full">
     <div ref="container" class="map-canvas size-full" role="region" :aria-label="t('map.title')"></div>
+    <!-- Viento: animación encima del mapa (no recibe toques). -->
+    <canvas ref="windCanvas" class="pointer-events-none absolute inset-0 size-full" :class="{ hidden: !wind.enabled }" aria-hidden="true"></canvas>
     <p v-if="offlineBase" class="map-notice pointer-events-none absolute bottom-10 left-1/2 -translate-x-1/2" role="status">
       {{ t('map.offlineBase') }}
     </p>
