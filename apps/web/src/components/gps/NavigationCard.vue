@@ -4,8 +4,8 @@ import { useI18n } from 'vue-i18n'
 import { Clock, Compass, Flag, ListPlus, MapPinned, Milestone, Navigation, Route, Ruler, X } from '@lucide/vue'
 import CardSection from '@/components/ui/CardSection.vue'
 import ReadoutTile from '@/components/ui/ReadoutTile.vue'
-import { useConfirm } from '@/composables/useConfirm'
 import { useFormat } from '@/composables/useFormat'
+import { useRouteActions } from '@/composables/useRouteActions'
 import { useGpsStore } from '@/stores/gps'
 import { useNavigationStore } from '@/stores/navigation'
 import { useUiStore } from '@/stores/ui'
@@ -20,7 +20,7 @@ const f = useFormat()
 const gps = useGpsStore()
 const nav = useNavigationStore()
 const ui = useUiStore()
-const confirm = useConfirm()
+const { cancelRoute } = useRouteActions()
 
 const hasFix = computed(() => !!gps.current)
 const multi = computed(() => nav.route.length > 1)
@@ -32,10 +32,7 @@ const etaText = computed(() => {
   return new Date(ms).toDateString() === new Date().toDateString() ? f.time(ms) : f.dateTime(ms)
 })
 
-async function cancelTarget() {
-  if (await confirm({ title: t('navigation.confirmClearTitle'), message: t('navigation.confirmClearMsg'), confirmLabel: t('navigation.cancelTarget'), tone: 'danger' }))
-    nav.clear()
-}
+const cancelTarget = cancelRoute
 </script>
 
 <template>

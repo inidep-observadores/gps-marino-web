@@ -6,28 +6,27 @@ import { bearingDeg, distanceNm, etaMs, featureAnchor, relatedFeatureIds, type L
 import MarkGlyph from '@/components/marks/MarkGlyph.vue'
 import ToggleRow from '@/components/ui/ToggleRow.vue'
 import { useFormat } from '@/composables/useFormat'
+import { useRouteActions } from '@/composables/useRouteActions'
 import { useGpsStore } from '@/stores/gps'
 import { useLayersStore } from '@/stores/layers'
 import { useMapStore } from '@/stores/map'
-import { useNavigationStore } from '@/stores/navigation'
-import { useToastStore } from '@/stores/toast'
 import { useUiStore } from '@/stores/ui'
 import { useWaypointsStore } from '@/stores/waypoints'
 
 /**
  * Ficha del elemento tocado en el mapa (`selected_map_feature_card.dart`): título, información, distancia,
- * rumbo y ETA desde el buque, "Navegar hacia aquí" y "Añadir a la ruta". Para ubicaciones: ocultar y editar.
+ * rumbo y ETA desde el buque y un botón que navega hacia allí o, con una ruta en curso, la agrega como tramo
+ * (como en Flutter). Para ubicaciones: ocultar y editar.
  * Para elementos de capas importadas: interruptor "Ocultar en mapa" (una línea arrastra los puntos de sus extremos).
  */
 const { t } = useI18n()
 const f = useFormat()
 const gps = useGpsStore()
 const map = useMapStore()
-const nav = useNavigationStore()
 const ui = useUiStore()
 const waypoints = useWaypointsStore()
 const layers = useLayersStore()
-const toast = useToastStore()
+const { hasRoute, addLabel, goOrAppend } = useRouteActions()
 
 const sel = computed(() => map.selected)
 const wp = computed(() => (sel.value?.kind === 'waypoint' ? waypoints.byId(sel.value.id) : null))
@@ -68,14 +67,9 @@ const navData = computed(() => {
 
 const point = () => ({ name: title.value, lat: position.value!.lat, lon: position.value!.lon, waypointId: wp.value?.id ?? null })
 
-function navigate() {
-  nav.setTarget(point())
-  toast.push(t('destination.targetSet', { name: title.value }), { tone: 'success' })
-  map.selected = null
-}
-function append() {
-  nav.append(point())
-  toast.push(t('destination.added', { name: title.value }), { tone: 'success' })
+/** Un solo botón, como en Flutter: navega si no hay ruta o agrega un tramo a la ruta en curso. */
+function toRoute() {
+  goOrAppend(point())
   map.selected = null
 }
 async function hideWaypoint() {
@@ -142,12 +136,10 @@ const hiddenToggle = computed({
 
     <ToggleRow v-if="layerFeature?.imported" v-model="hiddenToggle" :label="t('mapCard.hideOnMap')" />
 
-    <div class="grid gap-1.5" :class="wp ? 'grid-cols-4' : 'grid-cols-2'">
-      <button type="button" class="selection-action" @click="navigate">
-        <Navigation class="size-5 text-accent" aria-hidden="true" /><span>{{ t('mapCard.navigate') }}</span>
-      </button>
-      <button type="button" class="selection-action" @click="append">
-        <ListPlus class="size-5" aria-hidden="true" /><span>{{ t('mapCard.append') }}</span>
+    <div class="grid gap-1.5" :class="wp ? 'grid-cols-3' : 'grid-cols-1'">
+      <button type="button" class="selection-action" @click="toRoute">
+        <ListPlus v-if="hasRoute" class="size-5 text-accent" aria-hidden="true" />
+        <Navigation v-else class="size-5 text-accent" aria-hidden="true" /><span>{{ addLabel }}</span>
       </button>
       <template v-if="wp">
         <button type="button" class="selection-action" @click="hideWaypoint">

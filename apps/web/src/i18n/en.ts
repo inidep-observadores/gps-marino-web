@@ -272,6 +272,7 @@ const en: Messages<typeof es> = {
     cursor: 'Cursor',
     fromVessel: 'From the vessel',
     cursorTarget: 'Cursor position',
+    cursorPointN: 'Cursor point {n}',
   },
   mapCard: {
     navigate: 'Navigate',

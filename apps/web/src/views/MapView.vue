@@ -5,8 +5,10 @@ import {
   Crosshair,
   Layers,
   LocateFixed,
+  ListPlus,
   LocateOff,
   MapPinPlus,
+  Route,
   Minus,
   Navigation,
   Plus,
@@ -21,11 +23,11 @@ import MapInfoPanel from '@/components/map/MapInfoPanel.vue'
 import { LazyMapCanvas } from '@/components/map/lazyMap'
 import { useFormat } from '@/composables/useFormat'
 import { usePositionLog } from '@/composables/usePositionLog'
+import { useRouteActions } from '@/composables/useRouteActions'
 import { useTheme } from '@/composables/useTheme'
 import { useGpsStore } from '@/stores/gps'
 import { useMapStore } from '@/stores/map'
 import { useNavigationStore } from '@/stores/navigation'
-import { useToastStore } from '@/stores/toast'
 import { useUiStore } from '@/stores/ui'
 
 /**
@@ -40,8 +42,8 @@ const gps = useGpsStore()
 const map = useMapStore()
 const nav = useNavigationStore()
 const ui = useUiStore()
-const toast = useToastStore()
 const { openSaveAt } = usePositionLog()
+const { hasRoute, addLabel, goOrAppend, cancelRoute } = useRouteActions()
 
 const zoom = (d: number) => map.controller?.zoomBy(d)
 
@@ -59,10 +61,13 @@ function locate() {
   }
 }
 
-function navigateToCursor() {
-  const name = t('mapInfo.cursorTarget')
-  nav.setTarget({ name, lat: map.center.lat, lon: map.center.lon, waypointId: null })
-  toast.push(t('destination.targetSet', { name }), { tone: 'success' })
+/**
+ * Como en Flutter: sin ruta, "Navegar aquí" la inicia en el cursor; con una ruta en curso, el botón pasa a
+ * "Añadir a la ruta" y suma un tramo. Los puntos del cursor se numeran para distinguirlos en la ruta.
+ */
+function cursorToRoute() {
+  const name = hasRoute.value ? t('mapInfo.cursorPointN', { n: nav.route.length + 1 }) : t('mapInfo.cursorTarget')
+  goOrAppend({ name, lat: map.center.lat, lon: map.center.lon, waypointId: null })
 }
 
 const night = computed(() => theme.resolved.value === 'night')
@@ -139,16 +144,21 @@ const night = computed(() => theme.resolved.value === 'night')
           <button type="button" class="map-chip justify-center" @click="openSaveAt(map.center)">
             <MapPinPlus class="size-4" aria-hidden="true" />{{ t('mapControls.saveAtCursor') }}
           </button>
-          <button type="button" class="map-chip justify-center" @click="navigateToCursor">
-            <Navigation class="size-4 text-accent" aria-hidden="true" />{{ t('mapControls.navigateToCursor') }}
+          <button type="button" class="map-chip justify-center" @click="cursorToRoute">
+            <ListPlus v-if="hasRoute" class="size-4 text-accent" aria-hidden="true" />
+            <Navigation v-else class="size-4 text-accent" aria-hidden="true" />{{ addLabel }}
           </button>
         </div>
-        <div class="flex justify-center gap-2">
+        <div class="flex flex-wrap justify-center gap-2">
           <button type="button" class="map-chip" :aria-pressed="map.cursorVisible" @click="map.setCursor(!map.cursorVisible)">
             <SquareDashedMousePointer class="size-4" aria-hidden="true" />{{ map.cursorVisible ? t('mapControls.hideCursor') : t('mapControls.showCursor') }}
           </button>
           <button type="button" class="map-chip" @click="map.startMeasuring()">
             <Ruler class="size-4" aria-hidden="true" />{{ t('mapMeasure.start') }}
+          </button>
+          <!-- "Cancelar destino" del menú del mapa de Flutter: visible solo con una ruta en curso. -->
+          <button v-if="hasRoute" type="button" class="map-chip text-stop" @click="cancelRoute">
+            <Route class="size-4" aria-hidden="true" />{{ t('navigation.cancelTarget') }}
           </button>
         </div>
       </div>

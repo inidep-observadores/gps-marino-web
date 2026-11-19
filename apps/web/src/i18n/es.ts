@@ -273,6 +273,7 @@ export default {
     cursor: 'Cursor',
     fromVessel: 'Desde el buque',
     cursorTarget: 'Posición del cursor',
+    cursorPointN: 'Punto {n} del cursor',
   },
   mapCard: {
     navigate: 'Navegar',

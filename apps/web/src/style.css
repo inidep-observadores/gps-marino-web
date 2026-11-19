@@ -569,6 +569,10 @@
       bottom: 1.5rem;
     }
   }
+  .toast-stack.toast-stack-top {
+    top: calc(4rem + env(safe-area-inset-top) + 4.25rem);
+    bottom: auto;
+  }
   .toast {
     @apply pointer-events-auto flex w-full max-w-md animate-rise items-start gap-3 rounded-2xl border border-line bg-surface px-4 py-3
       text-sm text-ink shadow-2xl;
