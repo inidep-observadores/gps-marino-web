@@ -15,6 +15,7 @@ import {
   type ParsedLayer,
 } from '@gpsm/shared'
 import { BASE_LAYER_GROUPS, IMPORTED_TOKENS } from '@/layers/baseLayers'
+import { validateLayerName } from '@/logic/layerName'
 import { useDatabaseStore } from './database'
 
 const BASE_KEY = 'layers.base'
@@ -169,9 +170,17 @@ export const useLayersStore = defineStore('layers', () => {
     return { status: 'imported', name }
   }
 
-  async function patch(id: string, p: Partial<Pick<ImportedLayer, 'visible' | 'showDescriptions' | 'hiddenFeatures'>>) {
+  async function patch(id: string, p: Partial<Pick<ImportedLayer, 'name' | 'visible' | 'showDescriptions' | 'hiddenFeatures'>>) {
     const updated = await (await database.ready()).layers.update(id, p)
     if (updated) imported.value = imported.value.map((l) => (l.id === id ? updated : l))
+  }
+
+  /** Cambia el nombre que se muestra. `empty` / `exists` = no se guardó (nombre vacío o ya usado por otra capa). */
+  async function rename(id: string, input: string): Promise<{ ok: true } | { ok: false; error: 'empty' | 'exists' }> {
+    const r = validateLayerName(input, imported.value.filter((l) => l.id !== id).map((l) => l.name))
+    if (!r.ok) return r
+    if (imported.value.find((l) => l.id === id)?.name !== r.name) await patch(id, { name: r.name })
+    return { ok: true }
   }
 
   const toggleVisible = (id: string) => patch(id, { visible: !imported.value.find((l) => l.id === id)?.visible })
@@ -227,5 +236,6 @@ export const useLayersStore = defineStore('layers', () => {
     setHidden,
     remove,
     findByName,
+    rename,
   }
 })

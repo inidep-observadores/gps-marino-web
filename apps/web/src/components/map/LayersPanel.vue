@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Download, Eye, EyeOff, FileUp, Grid3x3, Layers as LayersIcon, MessageSquareText, Route as RouteIcon, Trash2, Wind } from '@lucide/vue'
+import { Check, Download, Eye, EyeOff, FileUp, Grid3x3, Layers as LayersIcon, MessageSquareText, Pencil, Route as RouteIcon, Trash2, Wind, X } from '@lucide/vue'
 import type { BaseGroup, GraticuleMode, ImportedLayer } from '@gpsm/shared'
 import SegmentedControl, { type SegmentOption } from '@/components/ui/SegmentedControl.vue'
 import ToggleRow from '@/components/ui/ToggleRow.vue'
@@ -9,6 +9,7 @@ import { useConfirm } from '@/composables/useConfirm'
 import { useFormat } from '@/composables/useFormat'
 import { BASE_LAYER_GROUPS } from '@/layers/baseLayers'
 import { LayerImportError, useLayersStore } from '@/stores/layers'
+import { LAYER_NAME_MAX } from '@/logic/layerName'
 import { useMapStore } from '@/stores/map'
 import { useTracksStore } from '@/stores/tracks'
 import { useWindStore, type WindStyle } from '@/stores/wind'
@@ -81,6 +82,29 @@ async function onFile(e: Event) {
   } finally {
     busy.value = false
   }
+}
+
+/** Cambio de nombre en la propia fila: se toca el lápiz, se escribe y Enter guarda (Escape cancela). */
+const renamingId = ref<string | null>(null)
+const draft = ref('')
+const renameError = ref<'empty' | 'exists' | null>(null)
+async function startRename(l: ImportedLayer) {
+  renamingId.value = l.id
+  draft.value = l.name
+  renameError.value = null
+  await nextTick()
+  const el = document.getElementById('layer-rename') as HTMLInputElement | null
+  el?.focus()
+  el?.select()
+}
+function cancelRename() {
+  renamingId.value = null
+  renameError.value = null
+}
+async function commitRename(l: ImportedLayer) {
+  const r = await layers.rename(l.id, draft.value)
+  if (r.ok) cancelRename()
+  else renameError.value = r.error
 }
 
 async function remove(l: ImportedLayer) {
@@ -174,13 +198,36 @@ const featureCount = (l: ImportedLayer) => layers.importedParsed.get(l.id)?.feat
       </p>
       <ul v-else class="list">
         <li v-for="l in layers.imported" :key="l.id" class="flex flex-col gap-2 px-4 py-3">
-          <div class="flex items-center gap-2">
-            <span class="flex min-w-0 flex-1 flex-col">
-              <span class="truncate text-sm font-semibold" :class="{ 'text-ink-subtle': !l.visible }">{{ l.name }}</span>
+          <form v-if="renamingId === l.id" class="flex flex-col gap-1.5" @submit.prevent="commitRename(l)">
+            <div class="flex items-center gap-2">
+              <input
+                id="layer-rename"
+                v-model="draft"
+                class="input min-w-0 flex-1"
+                :maxlength="LAYER_NAME_MAX"
+                enterkeyhint="done"
+                autocomplete="off"
+                :aria-label="t('layers.renameLabel')"
+                :aria-invalid="!!renameError"
+                @input="renameError = null"
+                @keydown.esc.stop.prevent="cancelRename"
+              />
+              <button type="submit" class="icon-btn text-accent" :aria-label="t('layers.saveName')" :title="t('layers.saveName')"><Check class="size-5" /></button>
+              <button type="button" class="icon-btn" :aria-label="t('common.cancel')" :title="t('common.cancel')" @click="cancelRename"><X class="size-5" /></button>
+            </div>
+            <p v-if="renameError" class="text-xs text-stop">{{ t(`layers.rename${renameError === 'empty' ? 'Empty' : 'Exists'}`) }}</p>
+          </form>
+          <div v-else class="flex items-center gap-2">
+            <!-- Tocar el nombre lo edita (el lápiz lo indica): así no se suma un cuarto botón y el nombre conserva su ancho -->
+            <button type="button" class="flex min-w-0 flex-1 flex-col text-left" :aria-label="t('layers.rename', { name: l.name })" :title="t('layers.rename', { name: l.name })" @click="startRename(l)">
+              <span class="flex items-center gap-1.5">
+                <span class="truncate text-sm font-semibold" :class="{ 'text-ink-subtle': !l.visible }">{{ l.name }}</span>
+                <Pencil class="size-3.5 shrink-0 text-ink-subtle" aria-hidden="true" />
+              </span>
               <span class="numeric text-xs text-ink-subtle">
                 {{ l.format.toUpperCase() }} · {{ t('layers.elements', featureCount(l)) }} · {{ f.date(l.importedAt) }}
               </span>
-            </span>
+            </button>
             <button type="button" class="icon-btn" :aria-pressed="l.visible" :aria-label="t(l.visible ? 'layers.hideLayer' : 'layers.showLayer', { name: l.name })" @click="layers.toggleVisible(l.id)">
               <Eye v-if="l.visible" class="size-5 text-accent" />
               <EyeOff v-else class="size-5" />
