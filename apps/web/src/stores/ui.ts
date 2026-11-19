@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, shallowRef } from 'vue'
-import type { ParsedBackup, PositionSample } from '@gpsm/shared'
+import type { ParsedBackup, PositionSample, WaypointInput } from '@gpsm/shared'
 
-export type SheetId = 'settings' | 'waypoint' | 'destination' | 'export' | 'restore'
+export type SheetId = 'settings' | 'waypoint' | 'destination' | 'export' | 'restore' | 'mapSettings'
 export type ViewId = 'gps' | 'waypoints' | 'map'
 
 /** Hash de cada vista: permite volver con el botón "atrás" y abrir una vista directo desde la PWA. */
@@ -24,8 +24,8 @@ export interface CapturedPosition {
   courseDeg: number | null
 }
 
-/** Qué edita la hoja `waypoint`: una ubicación existente o una nueva a partir de la posición capturada. */
-export type WaypointEditTarget = { kind: 'edit'; id: string } | { kind: 'new'; captured: CapturedPosition }
+/** Qué edita la hoja `waypoint`: una ubicación existente o una nueva con valores iniciales (GPS o cursor del mapa). */
+export type WaypointEditTarget = { kind: 'edit'; id: string } | { kind: 'new'; input: WaypointInput }
 
 /** Estado efímero de la interfaz (no se persiste): vista actual, hoja modal abierta y sus datos. */
 export const useUiStore = defineStore('ui', () => {
@@ -54,8 +54,8 @@ export const useUiStore = defineStore('ui', () => {
     window.location.hash = VIEW_HASH[v]
   }
 
-  function openSavePosition(captured: CapturedPosition) {
-    editing.value = { kind: 'new', captured }
+  function openNewWaypoint(input: WaypointInput) {
+    editing.value = { kind: 'new', input }
     open('waypoint')
   }
 
@@ -74,5 +74,5 @@ export const useUiStore = defineStore('ui', () => {
     open('restore')
   }
 
-  return { sheet, view, editing, exportRequest, pendingRestore, open, close, go, openSavePosition, openWaypoint, openExport, openRestore }
+  return { sheet, view, editing, exportRequest, pendingRestore, open, close, go, openNewWaypoint, openWaypoint, openExport, openRestore }
 })

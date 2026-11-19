@@ -16,18 +16,20 @@ useTheme()
 const ui = useUiStore()
 const VIEWS = { gps: GpsView, waypoints: WaypointsView, map: MapView } satisfies Record<ViewId, unknown>
 const current = computed(() => VIEWS[ui.view])
+const isMap = computed(() => ui.view === 'map')
 </script>
 
 <template>
   <div class="flex min-h-dvh flex-col">
     <AppHeader />
     <ConnectionBanner />
-    <main class="app-container flex-1 pt-4 sm:pt-6">
+    <!-- El mapa ocupa todo el ancho y el alto disponibles (sin márgenes ni pie). -->
+    <main :class="isMap ? 'flex-1' : 'app-container flex-1 pt-4 sm:pt-6'">
       <KeepAlive>
         <component :is="current" />
       </KeepAlive>
     </main>
-    <AppFooter />
+    <AppFooter v-if="!isMap" />
     <AppNav variant="bar" />
     <AppSheets />
   </div>

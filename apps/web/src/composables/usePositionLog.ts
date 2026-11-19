@@ -39,10 +39,16 @@ export function usePositionLog() {
     toast.push(t('gps.quickSaved', { name: description }), { tone: 'success' })
   }
 
+  /** Como en Flutter: marcador verde, no visible en el mapa; se abre el formulario para completarlo. */
   function openSaveForm() {
     const c = capture()
-    if (c) ui.openSavePosition(c)
+    if (c) ui.openNewWaypoint(waypointFromCapture(c, { description: '', icon: 'locationDot', color: 'green', visible: false }))
   }
 
-  return { quickSave, openSaveForm }
+  /** "Registrar posición en cursor" del mapa (Flutter): marcador azul, visible, sin velocidad ni rumbo, hora actual. */
+  function openSaveAt(p: { lat: number; lon: number }) {
+    ui.openNewWaypoint({ description: '', recordedAt: Date.now(), lat: p.lat, lon: p.lon, speedKn: 0, bearing: 0, icon: 'locationDot', color: 'blue', visible: true })
+  }
+
+  return { quickSave, openSaveForm, openSaveAt }
 }

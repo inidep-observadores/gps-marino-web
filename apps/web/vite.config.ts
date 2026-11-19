@@ -13,6 +13,8 @@ export default defineConfig({
   optimizeDeps: { exclude: ['@sqlite.org/sqlite-wasm'] },
   worker: { format: 'es' },
   define: { __APP_VERSION__: JSON.stringify(pkg.version) },
+  // MapLibre ocupa ~1 MB (290 KB gzip) en su propio fragmento: se precachea igual, el aviso no aporta.
+  build: { chunkSizeWarningLimit: 1200 },
   plugins: [
     vue(),
     tailwindcss(),
@@ -47,6 +49,43 @@ export default defineConfig({
           '**/sqlite3-{worker1,opfs-async-proxy}-*.js',
         ],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        // Mapas sin conexión: TODA tesela que se ve con conexión queda guardada y se reutiliza en altamar.
+        // Caché primero (sin red no hay otra opción), con topes amplios y vencimiento largo; si el navegador
+        // se queda sin cuota, se purga el caché del mapa antes que fallar (`purgeOnQuotaError`).
+        runtimeCaching: [
+          {
+            // Estilos, TileJSON, fuentes (.pbf de glifos) y sprites de OpenFreeMap: del caché, actualizándose en
+            // segundo plano. Las TESELAS (/planet/<versión>/...) no pasan por aquí: las guarda
+            // `components/map/offlineTiles.ts` con una clave sin versión (la versión cambia y rompería el caché).
+            urlPattern: ({ url }) => url.hostname === 'tiles.openfreemap.org' && !/^\/planet\/[^/]+\//.test(url.pathname),
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'map-style',
+              expiration: { maxEntries: 300, maxAgeSeconds: 365 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // Imágenes satelitales y batimetría (Esri). Más pesadas: tope propio.
+            urlPattern: /^https:\/\/(server|services)\.arcgisonline\.com\/.*\/tile\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'map-raster-tiles',
+              expiration: { maxEntries: 6000, maxAgeSeconds: 365 * 24 * 60 * 60, purgeOnQuotaError: true },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // Señales náuticas (OpenSeaMap).
+            urlPattern: /^https:\/\/tiles\.openseamap\.org\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'map-seamarks',
+              expiration: { maxEntries: 4000, maxAgeSeconds: 365 * 24 * 60 * 60, purgeOnQuotaError: true },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
     }),
   ],

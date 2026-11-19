@@ -9,7 +9,6 @@ import SegmentedControl from '@/components/ui/SegmentedControl.vue'
 import ToggleRow from '@/components/ui/ToggleRow.vue'
 import { useCloseGuard } from '@/components/ui/sheetGuard'
 import { useConfirm } from '@/composables/useConfirm'
-import { waypointFromCapture } from '@/composables/usePositionLog'
 import { isDirty, parseWaypointForm, toFormValues, type FormField, type WaypointFormValues } from '@/logic/waypointForm'
 import { useNavigationStore } from '@/stores/navigation'
 import { useToastStore } from '@/stores/toast'
@@ -18,7 +17,7 @@ import { useWaypointsStore } from '@/stores/waypoints'
 
 /**
  * Alta y edición de una ubicación, con todos los campos de la app Flutter (`waypoint_edit_page.dart`).
- * Nueva desde "Registrar posición": marcador verde, no visible en el mapa (como en Flutter).
+ * Nueva: llega con valores iniciales (posición del GPS o del cursor del mapa, ver `usePositionLog`).
  * Al cerrar con cambios sin guardar pregunta antes (X, fondo o Escape).
  */
 const props = defineProps<{ target: WaypointEditTarget }>()
@@ -33,9 +32,7 @@ const confirm = useConfirm()
 const existing = computed(() => (props.target.kind === 'edit' ? waypoints.byId(props.target.id) : null))
 
 function initialInput(): WaypointInput {
-  if (props.target.kind === 'new') {
-    return waypointFromCapture(props.target.captured, { description: '', icon: 'locationDot', color: 'green', visible: false })
-  }
+  if (props.target.kind === 'new') return props.target.input
   const w = existing.value
   if (!w) return { description: '', recordedAt: Date.now(), lat: 0, lon: 0, speedKn: 0, bearing: 0, icon: DEFAULT_MARK_ICON, color: 'system', visible: false }
   return w

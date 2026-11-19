@@ -630,6 +630,70 @@
       hover:bg-surface-2 hover:text-ink active:scale-95;
   }
 
+  /* ---------- Mapa a pantalla completa ---------- */
+  /* Alto útil: pantalla menos encabezado y, en el teléfono, la barra inferior. */
+  .map-screen {
+    @apply relative w-full overflow-hidden;
+    height: calc(100dvh - 4rem - env(safe-area-inset-top) - 4.25rem - env(safe-area-inset-bottom));
+  }
+  @media (min-width: 48rem) {
+    .map-screen {
+      height: calc(100dvh - 4rem - env(safe-area-inset-top));
+    }
+  }
+  @media (orientation: landscape) and (max-height: 540px) {
+    .map-screen {
+      height: calc(100dvh - 3.25rem - env(safe-area-inset-top) - 4.25rem - env(safe-area-inset-bottom));
+    }
+  }
+  .map-night-tint {
+    @apply pointer-events-none absolute inset-0 z-[1];
+    background: oklch(0.45 0.2 27);
+    mix-blend-mode: multiply;
+  }
+  .map-crosshair {
+    @apply pointer-events-none absolute top-1/2 left-1/2 z-[2] -translate-x-1/2 -translate-y-1/2 text-ink;
+    filter: drop-shadow(0 0 2px var(--ds-canvas)) drop-shadow(0 0 1px var(--ds-canvas));
+  }
+  .map-overlay-top {
+    @apply pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-center p-2.5 sm:justify-start sm:p-3;
+  }
+  .map-overlay-right {
+    @apply pointer-events-none absolute top-1/2 right-2.5 z-10 flex -translate-y-1/2 flex-col gap-2 sm:right-3;
+  }
+  .map-overlay-bottom {
+    @apply pointer-events-none absolute inset-x-0 bottom-0 z-10 mx-auto flex max-w-lg flex-col p-2.5 pb-8 sm:p-3 sm:pb-9;
+  }
+  .map-overlay-bottom > * {
+    @apply pointer-events-auto;
+  }
+  .map-panel {
+    @apply pointer-events-auto flex w-full max-w-md flex-col gap-1.5 rounded-2xl border border-line bg-surface/92 px-3.5 py-2.5
+      shadow-card backdrop-blur;
+  }
+  .map-panel-grid {
+    @apply grid grid-cols-2 gap-x-3 gap-y-1.5 border-t border-line pt-1.5;
+  }
+  .map-panel-grid dt {
+    @apply eyebrow text-[0.6rem];
+  }
+  .map-panel-grid dd {
+    @apply numeric truncate text-[0.82rem] text-ink;
+  }
+  .map-card {
+    @apply flex flex-col gap-3 rounded-2xl border border-line bg-surface/95 p-3.5 shadow-2xl backdrop-blur animate-rise;
+  }
+  .map-fab {
+    @apply pointer-events-auto inline-flex size-12 items-center justify-center rounded-2xl border border-line bg-surface/95 text-ink
+      shadow-card backdrop-blur transition active:scale-95;
+  }
+  .map-fab[aria-pressed='true'] {
+    @apply border-accent ring-2 ring-accent/30;
+  }
+  .map-chip[aria-pressed='true'] {
+    @apply border-accent text-accent;
+  }
+
   /* Carga */
   .skeleton {
     @apply animate-pulse rounded-xl bg-surface-3/70;

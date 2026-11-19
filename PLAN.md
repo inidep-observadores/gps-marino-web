@@ -194,7 +194,7 @@ Cada fase termina con `pnpm build && pnpm test` en verde y una prueba manual en 
 - Exportar GPX, KML, JSON (y TXT/CSV, que hoy falta) en ZIP; **Web Share API con archivos** y descarga como respaldo.
 - Restaurar copia `.json`/`.zip` **compatible con los archivos `MogData` de la app Flutter**; se ofrece **reemplazar o combinar** (hoy solo reemplaza).
 
-**Fase 3 · Mapa** (≈ 2,5 semanas)
+**Fase 3 · Mapa** (≈ 2,5 semanas) — ✅ hecha (18/11/2026); teselas guardadas con clave sin versión; falta probar en altamar real
 - MapLibre con los cuatro tipos de mapa y tema; cámara persistida.
 - Buque rotado por rumbo, seguimiento, centrar, zoom; waypoints con su ícono y color; polilínea de la ruta con inicio/destino.
 - Anillos de distancia, línea COG, cursor central con ventana de información, registrar posición en el cursor y navegar hacia él.

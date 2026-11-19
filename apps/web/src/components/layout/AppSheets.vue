@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import DestinationPicker from '@/components/gps/DestinationPicker.vue'
 import ConfirmHost from '@/components/layout/ConfirmHost.vue'
 import ToastHost from '@/components/layout/ToastHost.vue'
+import MapSettingsPanel from '@/components/map/MapSettingsPanel.vue'
 import SettingsPanel from '@/components/panels/SettingsPanel.vue'
 import BaseSheet from '@/components/ui/BaseSheet.vue'
 import ExportPanel from '@/components/waypoints/ExportPanel.vue'
@@ -26,13 +27,14 @@ const waypoint = bind('waypoint')
 const destination = bind('destination')
 const exportSheet = bind('export')
 const restore = bind('restore')
+const mapSettings = bind('mapSettings')
 
 const waypointTitle = computed(() =>
   ui.editing?.kind === 'edit' ? t('waypointForm.editTitle') : t('savePosition.title'),
 )
 /** Clave que fuerza un formulario nuevo por cada ubicación o posición capturada. */
 const waypointKey = computed(() =>
-  ui.editing?.kind === 'edit' ? ui.editing.id : ui.editing ? `new-${ui.editing.captured.sample.t}` : '',
+  ui.editing?.kind === 'edit' ? ui.editing.id : ui.editing ? `new-${ui.editing.input.recordedAt}-${ui.editing.input.lat}` : '',
 )
 </script>
 
@@ -56,6 +58,9 @@ const waypointKey = computed(() =>
       :backup="ui.pendingRestore.backup"
       @done="ui.close()"
     />
+  </BaseSheet>
+  <BaseSheet v-model:open="mapSettings" :title="t('mapSettings.title')">
+    <MapSettingsPanel v-if="mapSettings" />
   </BaseSheet>
   <ConfirmHost />
   <ToastHost />

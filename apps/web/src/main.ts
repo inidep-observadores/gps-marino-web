@@ -4,6 +4,7 @@ import App from './App.vue'
 import { i18n } from './i18n'
 import { useDatabaseStore } from './stores/database'
 import { useGpsStore } from './stores/gps'
+import { useMapStore } from './stores/map'
 import { useNavigationStore } from './stores/navigation'
 import { usePrefsStore } from './stores/prefs'
 import { useWaypointsStore } from './stores/waypoints'
@@ -27,9 +28,10 @@ const database = useDatabaseStore()
 const navigation = useNavigationStore()
 const waypoints = useWaypointsStore()
 const gps = useGpsStore()
+const mapStore = useMapStore()
 void database
   .open()
-  .then(() => Promise.all([navigation.load(), waypoints.load()]))
+  .then(() => Promise.all([navigation.load(), waypoints.load(), mapStore.load()]))
   .catch((e) => console.error('[db]', e))
 
 // Como la app Flutter, el GPS arranca solo al abrir... si el permiso ya estaba concedido (no se pide sin un gesto).
@@ -43,6 +45,7 @@ if (import.meta.env.DEV) {
       gps,
       navigation,
       waypoints,
+      map: mapStore,
       /** `__gpsm.simulate({ lat: -38, lon: -57.5, speedKn: 8, courseDeg: 135 })` → devuelve el control (`.set({...})`). */
       simulate(opts: Parameters<typeof createSimulatedSource>[0]) {
         const src = createSimulatedSource(opts)

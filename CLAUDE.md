@@ -25,7 +25,8 @@ packages/shared/      TS puro (sin Vue ni Nest), con tests: dominio + esquemas z
                       geometría esférica en Nm (geo.ts), formatos náuticos (format.ts), velocidad promedio y COG
                       derivados de posiciones (motion.ts), ruta/ETA/avance automático/avisos de arribo (navigation.ts),
                       orden/búsqueda/agrupado por día (waypointList.ts), copias MogData compatibles con Flutter
-                      (backup.ts), exportadores GPX/KML/CSV (exporters.ts)
+                      (backup.ts), exportadores GPX/KML/CSV (exporters.ts), geometrías del mapa: anillos, COG, ruta,
+                      medición (mapGeometry.ts)
 apps/web/
   src/db/             schema.ts (Drizzle), migrations/ (generadas), migrations.ts (glob de Vite),
                       engine.ts (motor SQL síncrono sobre sqlite-wasm: lo usan el worker y los tests),
@@ -46,7 +47,10 @@ apps/web/
                       AppLogo); gps/ (PositionCard, NavigationCard, DestinationPicker);
                       waypoints/ (WaypointForm: alta y edición, WaypointRow, SelectionBar, ExportPanel, RestorePanel);
                       marks/ (MarkGlyph, MarkIconPicker, MarkColorPicker, markIcons: SVG de Font Awesome sin su librería);
-                      panels/ (SettingsPanel, RouteSettings)
+                      panels/ (SettingsPanel, RouteSettings);
+                      map/ (MapCanvas: MapLibre, siempre vía lazyMap; mapStyles: tipos de mapa y tokenColor;
+                      mapImages: íconos y buque dibujados en canvas; offlineTiles: caché propio de teselas;
+                      MapInfoPanel, MapFeatureCard, MapSettingsPanel)
   src/views/          GpsView, WaypointsView, MapView (por hash en App.vue, con KeepAlive)
   src/i18n/           es.ts (fuente de las claves) y en.ts (tipado contra es)
   tests/              Vitest en Node con SQLite real en memoria (tests/helpers/testDb.ts)
@@ -95,6 +99,24 @@ apps/web/
 - **Compartir archivos:** Chrome para Android no comparte GPX/KML/JSON/ZIP con Web Share (solo algunos tipos): `canShareFile`
   se consulta por archivo y si no se puede se descarga. El navegador integrado no tiene Web Share. No hacer clic en
   "Guardar archivo" al verificar (descarga un archivo en la máquina del usuario): verificar armando el archivo por JS.
+- **Mapa (fase 3):** `MapView` a pantalla completa (sin márgenes ni pie; `.map-screen` resta encabezado y barra inferior).
+  Un solo mapa: `MapCanvas` lee los stores y registra en `stores/map` un `controller` (zoom, centrar). Cursor = centro del
+  mapa; la medición marca puntos bajo el cursor. Ajustes en `settings` (`map.settings`), cámara en localStorage
+  (`gpsm.map.camera.v1`, propia del dispositivo). Las capas propias se vuelven a agregar en cada `style.load`.
+  - **Tipos:** estándar = OpenFreeMap (claro/oscuro); satélite e híbrido = Esri World Imagery (+ referencias);
+    "Terreno" = batimetría Esri Ocean (datos hasta z10, por eso `maxzoom: 10`). Señales náuticas: OpenSeaMap (opcional).
+  - **Sin conexión:** las teselas de OpenFreeMap llevan la VERSIÓN del planeta en la URL y cambia seguido: con el caché del
+    service worker lo guardado dejaría de encontrarse. Por eso el estilo se reescribe al protocolo `ofm://` y
+    `offlineTiles.ts` guarda cada tesela con clave sin versión (caché primero, tope `MAX_TILES`). Estilos, TileJSON,
+    fuentes y sprites: service worker (StaleWhileRevalidate); raster Esri/OpenSeaMap: service worker (CacheFirst).
+    Sin estilo guardado se usa un estilo local vacío y lo propio (buque, ruta, ubicaciones) se sigue viendo.
+  - El código del mapa va en un fragmento aparte pero SE PRECACHEA (al revés que en Drone Forecast).
+  - Íconos de ubicaciones: se registran con `ensureMarkImages` al armar las capas (`styleimagemissing` falla al cambiar
+    de estilo). Las etiquetas van en otra fuente que los íconos: si faltan glifos sin conexión, MapLibre descarta todos
+    los símbolos de la tesela de esa fuente.
+  - **Verificar con el panel del navegador VISIBLE** (`mcp__ccd_view__show_pane` preview): oculto, no corre
+    `requestAnimationFrame` y MapLibre no termina de cargar el estilo (parece un error y no lo es). En desarrollo
+    `window.__map` es la instancia de MapLibre.
 - `typescript` fijado en 5.x por `vue-tsc`. pnpm rechaza versiones publicadas hace poco (`minimumReleaseAge`): fijar una versión con al menos un par de semanas en vez de agregar excepciones.
 - Íconos PWA (`public/*.png`) generados desde `public/icon.svg` con Chrome headless (el maskable con la marca al 72 %).
 - En la web no hay GPS en segundo plano: con la pantalla apagada o la pestaña oculta el navegador suspende la geolocalización. Decisión: no hace falta (se usa Wake Lock mientras se navega).
