@@ -5,7 +5,7 @@
 export default {
   app: {
     title: 'GPS Marino',
-    tagline: 'Navegación a bordo',
+    tagline: 'Observadores a Bordo - INIDEP',
     disclaimer:
       'Ayuda a la navegación. No reemplaza las cartas náuticas oficiales ni los instrumentos del buque.',
     localData: 'Tus datos se guardan en este dispositivo',

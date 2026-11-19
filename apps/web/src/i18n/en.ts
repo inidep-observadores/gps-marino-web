@@ -5,7 +5,7 @@ type Messages<T> = { [K in keyof T]: T[K] extends string ? string : Messages<T[K
 const en: Messages<typeof es> = {
   app: {
     title: 'Marine GPS',
-    tagline: 'Onboard navigation',
+    tagline: 'Onboard Observers - INIDEP',
     disclaimer: 'Navigation aid. It does not replace official nautical charts or the vessel instruments.',
     localData: 'Your data is stored on this device',
   },
