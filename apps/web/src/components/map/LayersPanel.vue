@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Download, Eye, EyeOff, FileUp, MessageSquareText, Route as RouteIcon, Trash2, Wind } from '@lucide/vue'
-import type { BaseGroup, ImportedLayer } from '@gpsm/shared'
+import { Download, Eye, EyeOff, FileUp, Grid3x3, MessageSquareText, Route as RouteIcon, Trash2, Wind } from '@lucide/vue'
+import type { BaseGroup, GraticuleMode, ImportedLayer } from '@gpsm/shared'
 import SegmentedControl, { type SegmentOption } from '@/components/ui/SegmentedControl.vue'
 import ToggleRow from '@/components/ui/ToggleRow.vue'
 import { useConfirm } from '@/composables/useConfirm'
 import { useFormat } from '@/composables/useFormat'
 import { BASE_LAYER_GROUPS } from '@/layers/baseLayers'
 import { LayerImportError, useLayersStore } from '@/stores/layers'
+import { useMapStore } from '@/stores/map'
 import { useTracksStore } from '@/stores/tracks'
 import { useWindStore, type WindStyle } from '@/stores/wind'
 import { useToastStore } from '@/stores/toast'
@@ -22,6 +23,20 @@ const f = useFormat()
 const layers = useLayersStore()
 const wind = useWindStore()
 const tracks = useTracksStore()
+const mapStore = useMapStore()
+const gridOn = computed({
+  get: () => mapStore.settings.graticule.show,
+  set: (v: boolean) => void mapStore.update({ graticule: { ...mapStore.settings.graticule, show: v } }),
+})
+const gridMode = computed({
+  get: () => mapStore.settings.graticule.mode,
+  set: (v: GraticuleMode) => void mapStore.update({ graticule: { ...mapStore.settings.graticule, mode: v } }),
+})
+const gridModeOptions = computed<SegmentOption<GraticuleMode>[]>(() => [
+  { value: 'adaptive', label: t('layers.gridAdaptive') },
+  { value: 'deg1', label: t('layers.gridDeg1') },
+  { value: 'deg05', label: t('layers.gridDeg05') },
+])
 const windOn = computed({ get: () => wind.enabled, set: (v: boolean) => void wind.setEnabled(v) })
 const windStyle = computed({ get: () => wind.windStyle, set: (v: WindStyle) => void wind.setStyle(v) })
 const windStyleOptions = computed<SegmentOption<WindStyle>[]>(() => [
@@ -98,6 +113,16 @@ const featureCount = (l: ImportedLayer) => layers.importedParsed.get(l.id)?.feat
       </div>
       <ToggleRow v-model="labels" :label="t('layers.showLabels')" :hint="t('layers.showLabelsHint')" />
       <p class="text-caption">{{ t('layers.baseOffline') }}</p>
+    </section>
+
+    <section class="flex flex-col gap-3">
+      <h3 class="eyebrow flex items-center gap-1.5"><Grid3x3 class="size-3.5" aria-hidden="true" />{{ t('layers.grid') }}</h3>
+      <ToggleRow v-model="gridOn" :label="t('layers.gridShow')" :hint="t('layers.gridHint')" />
+      <!-- Resolución: solo con la cuadrícula visible. -->
+      <template v-if="gridOn">
+        <SegmentedControl v-model="gridMode" :options="gridModeOptions" :label="t('layers.gridResolution')" />
+        <p class="text-caption">{{ t(gridMode === 'adaptive' ? 'layers.gridAdaptiveHint' : 'layers.gridFixedHint') }}</p>
+      </template>
     </section>
 
     <section class="flex flex-col gap-3">

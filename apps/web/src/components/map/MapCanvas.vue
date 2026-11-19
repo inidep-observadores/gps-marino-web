@@ -24,6 +24,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 // El worker de MapLibre se empaqueta con `?worker&url` (como en Drone Forecast): funciona en desarrollo y producción.
 import mapWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import {
+  buildGraticule,
   cogLine,
   distanceRings,
   emptyCollection,
@@ -91,6 +92,27 @@ const vesselData = () => {
     properties: { course: gps.courseDeg ?? 0, still: gps.courseDeg == null },
   }
 }
+/** Cuadrícula: líneas y etiquetas de la vista actual. Las etiquetas van pegadas a los bordes izquierdo (paralelos) y superior (meridianos). */
+const graticuleData = () => {
+  const g = mapStore.settings.graticule
+  if (!map || !g.show || !container.value) return { lines: EMPTY, labels: EMPTY }
+  const w = container.value.clientWidth
+  const h = container.value.clientHeight
+  if (!w || !h) return { lines: EMPTY, labels: EMPTY }
+  const b = map.getBounds()
+  const r = buildGraticule(
+    { west: b.getWest(), south: b.getSouth(), east: b.getEast(), north: b.getNorth() },
+    { widthPx: w, heightPx: h },
+    g.mode,
+    { latLabelLon: map.unproject([10, h / 2]).lng, lonLabelLat: map.unproject([w / 2, 12]).lat, west: t('units.west') },
+  )
+  return { lines: r.lines, labels: r.labels }
+}
+const updateGraticule = () => {
+  const g = graticuleData()
+  set('graticule', g.lines)
+  set('graticule-labels', g.labels)
+}
 const ringsData = () => {
   const c = gps.current
   const r = mapStore.settings.rings
@@ -142,6 +164,12 @@ function addOverlay(m: MapLibre) {
   m.addImage('vessel-still', vesselStillImage(colors, ratio), { pixelRatio: ratio })
   ensureMarkImages(m)
 
+  // Cuadrícula: las líneas van debajo de todo (también de las capas vectoriales); las etiquetas, encima de ellas.
+  const grid = graticuleData()
+  m.addSource('graticule', { type: 'geojson', data: grid.lines })
+  m.addSource('graticule-labels', { type: 'geojson', data: grid.labels })
+  m.addLayer({ id: 'graticule', type: 'line', source: 'graticule', paint: { 'line-color': colors.inkMuted, 'line-width': 0.8, 'line-opacity': 0.4, 'line-dasharray': [2, 3] } })
+
   // Capas vectoriales (costas, límites, áreas, importadas): debajo de todo lo propio.
   syncVectorLayers(m, layers.renderLayers, { colors, showLabels: layers.showLabels, imported: layers.imported })
 
@@ -165,6 +193,21 @@ function addOverlay(m: MapLibre) {
   m.addSource('vessel', { type: 'geojson', data: vesselData() })
 
   const halo = { 'text-halo-color': colors.canvas, 'text-halo-width': 1.6 }
+  m.addLayer({
+    id: 'graticule-labels',
+    type: 'symbol',
+    source: 'graticule-labels',
+    layout: {
+      'text-field': ['get', 'text'],
+      'text-font': LABEL_FONT,
+      'text-size': 10,
+      'text-anchor': ['match', ['get', 'axis'], 'lat', 'bottom-left', 'top'],
+      'text-offset': ['match', ['get', 'axis'], 'lat', ['literal', [0.2, -0.2]], ['literal', [0, 0.2]]],
+      'text-allow-overlap': false,
+      'text-padding': 4,
+    },
+    paint: { 'text-color': colors.inkMuted, 'text-halo-color': colors.canvas, 'text-halo-width': 1.4, 'text-opacity': 0.9 },
+  })
   m.addLayer({ id: 'rings', type: 'line', source: 'rings', paint: { 'line-color': colors.accent, 'line-width': 1.2, 'line-opacity': 0.7, 'line-dasharray': [4, 3] } })
   m.addLayer({
     id: 'rings-labels',
@@ -328,8 +371,10 @@ onMounted(() => {
       mapStore.center = { lat: c.lat, lon: c.lng }
       mapStore.zoom = map.getZoom()
       if (mapStore.measuring) set('measure', measureData())
+      updateGraticule()
     })
   })
+  map.on('resize', updateGraticule)
   // Viento: el campo se pasa a pantalla de nuevo al terminar de mover (durante el gesto se detiene la animación).
   map.on('movestart', () => {
     if (!wind.enabled) return
@@ -498,6 +543,7 @@ watch(
     if (map && overlayReady) syncVectorLayers(map, layers.renderLayers, { colors: colors ?? palette(), showLabels: layers.showLabels, imported: layers.imported }, 'rings')
   },
 )
+watch(() => [mapStore.settings.graticule.show, mapStore.settings.graticule.mode] as const, updateGraticule)
 // Tipo de mapa, tema o señales náuticas: otro estilo; las capas propias vuelven en `style.load`.
 watch(() => [mapStore.settings.mapType, mapStore.settings.seamarks, theme.resolved.value] as const, applyStyle)
 watch(

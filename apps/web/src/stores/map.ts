@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
-import { polylineNm, type Bounds, type LatLon } from '@gpsm/shared'
+import { polylineNm, type Bounds, type GraticuleMode, type LatLon } from '@gpsm/shared'
 import type { MapType } from '@/components/map/mapStyles'
 import { readJson, writeJson } from '@/composables/storage'
 import { useDatabaseStore } from './database'
@@ -13,6 +13,8 @@ export interface MapSettings {
   cog: { show: boolean; minutes: number }
   /** Capa de señales náuticas de OpenSeaMap (nueva respecto de Flutter). */
   seamarks: boolean
+  /** Cuadrícula de latitud y longitud con la graduación en los bordes; `mode` = paso (adaptativo según el zoom, 1° o ½°). */
+  graticule: { show: boolean; mode: GraticuleMode }
 }
 
 export const DEFAULT_MAP_SETTINGS: MapSettings = {
@@ -21,6 +23,7 @@ export const DEFAULT_MAP_SETTINGS: MapSettings = {
   rings: { show: false, count: 3, spacingNm: 1 },
   cog: { show: false, minutes: 10 },
   seamarks: false,
+  graticule: { show: true, mode: 'adaptive' },
 }
 
 const SETTINGS_KEY = 'map.settings'
@@ -65,6 +68,7 @@ export const useMapStore = defineStore('map', () => {
       ...saved,
       rings: { ...DEFAULT_MAP_SETTINGS.rings, ...saved.rings },
       cog: { ...DEFAULT_MAP_SETTINGS.cog, ...saved.cog },
+      graticule: { ...DEFAULT_MAP_SETTINGS.graticule, ...saved.graticule },
     }
   }
 
