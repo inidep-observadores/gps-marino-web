@@ -35,7 +35,7 @@ const layersSheet = bind('layers')
 const forecastSheet = bind('pointForecast')
 
 const waypointTitle = computed(() =>
-  ui.editing?.kind === 'edit' ? t('waypointForm.editTitle') : t('savePosition.title'),
+  ui.editing?.kind === 'edit' ? t('waypointForm.editTitle') : ui.editing?.blank ? t('waypointForm.newTitle') : t('savePosition.title'),
 )
 /** Clave que fuerza un formulario nuevo por cada ubicación o posición capturada. */
 const waypointKey = computed(() =>

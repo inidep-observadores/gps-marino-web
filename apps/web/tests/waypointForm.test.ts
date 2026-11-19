@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { WaypointInput } from '@gpsm/shared'
-import { isDirty, parseDecimal, parseWaypointForm, toFormValues } from '@/logic/waypointForm'
+import { isDirty, parseDecimal, parseWaypointForm, toFormValues, emptyFormValues } from '@/logic/waypointForm'
 
 const base: WaypointInput = {
   description: 'Lance 12',
@@ -71,5 +71,29 @@ describe('formulario de ubicación', () => {
     expect(parseDecimal('')).toBeNull()
     expect(parseDecimal('1.2.3')).toBeNull()
     expect(parseDecimal('abc')).toBeNull()
+  })
+})
+
+
+describe('formulario en blanco (nueva ubicación desde cero)', () => {
+  const NOW = new Date(2026, 10, 19, 13, 49, 5).getTime()
+
+  it('trae las coordenadas vacías, hemisferios sur y oeste, y la hora de ahora', () => {
+    const v = emptyFormValues(NOW)
+    expect(v).toMatchObject({ latDeg: '', latMin: '', lonDeg: '', lonMin: '', latSouth: true, lonWest: true, date: '2026-11-19', time: '13:49:05', speed: '0', bearing: '0', visible: true })
+  })
+
+  it('no se puede guardar hasta escribir latitud y longitud', () => {
+    const r = parseWaypointForm(emptyFormValues(NOW))
+    expect(r.input).toBeNull()
+    expect(r.errors).toMatchObject({ latDeg: 'required', latMin: 'required', lonDeg: 'required', lonMin: 'required' })
+  })
+
+  it('con las coordenadas escritas se guarda con el hemisferio elegido', () => {
+    const r = parseWaypointForm({ ...emptyFormValues(NOW), description: 'Boya', latDeg: '38', latMin: '30', lonDeg: '57', lonMin: '15' })
+    expect(r.errors).toEqual({})
+    expect(r.input?.lat).toBeCloseTo(-38.5, 9)
+    expect(r.input?.lon).toBeCloseTo(-57.25, 9)
+    expect(r.input?.description).toBe('Boya')
   })
 })

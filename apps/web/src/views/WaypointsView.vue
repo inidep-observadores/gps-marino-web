@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onDeactivated, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ArrowDownWideNarrow, ArrowUpNarrowWide, CalendarDays, FileUp, ListChecks, MapPinned, Search, Shapes, ShieldAlert, Share2, Type } from '@lucide/vue'
+import { ArrowDownWideNarrow, ArrowUpNarrowWide, CalendarDays, FileUp, ListChecks, MapPinned, Plus, Search, Shapes, ShieldAlert, Share2, Type } from '@lucide/vue'
 import { BackupFormatError, groupByDay, parseMogJson, type WaypointOrder } from '@gpsm/shared'
 import CardSection from '@/components/ui/CardSection.vue'
 import SegmentedControl, { type SegmentOption } from '@/components/ui/SegmentedControl.vue'
@@ -82,7 +82,7 @@ function startSelection() {
 </script>
 
 <template>
-  <div class="dashboard mx-auto max-w-3xl lg:max-w-none" :class="{ 'pb-20': store.selectMode }">
+  <div class="dashboard mx-auto max-w-3xl pb-20 lg:max-w-none">
     <div class="dashboard-aside lg:sticky lg:top-20 lg:col-span-4 xl:col-span-4">
     <CardSection
       :title="t('waypoints.title')"
@@ -103,6 +103,10 @@ function startSelection() {
       </template>
 
       <div class="flex flex-col gap-3">
+        <!-- En pantallas medianas y grandes el botón va en la tarjeta; en el teléfono es el botón flotante de abajo -->
+        <button type="button" class="btn-primary hidden md:inline-flex" @click="ui.openBlankWaypoint()">
+          <Plus class="size-4" aria-hidden="true" />{{ t('waypoints.new') }}
+        </button>
         <!-- Copias de seguridad: los datos viven solo en este teléfono -->
         <div class="flex flex-wrap items-center gap-2">
           <button type="button" class="chip" :disabled="!store.items.length" @click="ui.openExport([], true)">
@@ -174,6 +178,11 @@ function startSelection() {
       <p v-if="shown.length < store.visibleList.length" class="text-caption text-center">{{ t('common.loading') }}</p>
     </template>
     </div>
+
+    <!-- Nueva ubicación: botón flotante abajo, al alcance del pulgar (se oculta mientras se seleccionan filas) -->
+    <button v-if="!store.selectMode" type="button" class="fab md:hidden" @click="ui.openBlankWaypoint()">
+      <Plus class="size-5" aria-hidden="true" />{{ t('waypoints.new') }}
+    </button>
 
     <SelectionBar v-if="store.selectMode" />
   </div>

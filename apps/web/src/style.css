@@ -630,6 +630,12 @@
   }
 
   /* Barra de selección múltiple: fija abajo, sobre la barra de navegación en el teléfono */
+  /* Botón de acción flotante (Nueva ubicación): sobre la barra inferior, en el teléfono */
+  .fab {
+    @apply fixed right-4 z-20 inline-flex h-12 items-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold text-accent-ink
+      shadow-[0_12px_28px_-10px_var(--ds-accent)] transition hover:brightness-110 active:scale-95;
+    bottom: calc(4.25rem + env(safe-area-inset-bottom) + 0.75rem);
+  }
   .selection-bar {
     @apply fixed inset-x-0 z-40 animate-rise border-t border-line bg-surface/95 py-2 shadow-2xl backdrop-blur-xl;
     bottom: calc(4.25rem + env(safe-area-inset-bottom));

@@ -10,7 +10,7 @@ import SegmentedControl from '@/components/ui/SegmentedControl.vue'
 import ToggleRow from '@/components/ui/ToggleRow.vue'
 import { useCloseGuard } from '@/components/ui/sheetGuard'
 import { useConfirm } from '@/composables/useConfirm'
-import { isDirty, parseWaypointForm, toFormValues, type FormField, type WaypointFormValues } from '@/logic/waypointForm'
+import { emptyFormValues, isDirty, parseWaypointForm, toFormValues, type FormField, type WaypointFormValues } from '@/logic/waypointForm'
 import { useNavigationStore } from '@/stores/navigation'
 import { useToastStore } from '@/stores/toast'
 import type { WaypointEditTarget } from '@/stores/ui'
@@ -40,7 +40,7 @@ function initialInput(): WaypointInput {
 }
 
 const start = initialInput()
-const initial = toFormValues(start)
+const initial = props.target.kind === 'new' && props.target.blank ? emptyFormValues(start.recordedAt) : toFormValues(start)
 const form = reactive<WaypointFormValues>({ ...initial })
 const errors = ref<Partial<Record<FormField, string>>>({})
 const saving = ref(false)

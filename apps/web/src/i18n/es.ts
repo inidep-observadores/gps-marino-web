@@ -174,6 +174,7 @@ export default {
   },
   waypoints: {
     title: 'Ubicaciones',
+    new: 'Nueva ubicación',
     count: 'Sin ubicaciones guardadas | 1 ubicación guardada | {n} ubicaciones guardadas',
     empty: 'Todavía no hay ubicaciones guardadas.',
     emptyHint: 'Registra una posición desde la pestaña GPS o restaura una copia de seguridad.',
@@ -206,6 +207,7 @@ export default {
   },
   waypointForm: {
     editTitle: 'Editando ubicación',
+    newTitle: 'Nueva ubicación',
     position: 'Posición',
     record: 'Datos del registro',
     mark: 'Marca en el mapa',

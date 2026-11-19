@@ -26,7 +26,7 @@ export interface CapturedPosition {
 }
 
 /** Qué edita la hoja `waypoint`: una ubicación existente o una nueva con valores iniciales (GPS o cursor del mapa). */
-export type WaypointEditTarget = { kind: 'edit'; id: string } | { kind: 'new'; input: WaypointInput }
+export type WaypointEditTarget = { kind: 'edit'; id: string } | { kind: 'new'; input: WaypointInput; /** Formulario vacío para escribir todo a mano. */ blank?: boolean }
 
 /** Estado efímero de la interfaz (no se persiste): vista actual, hoja modal abierta y sus datos. */
 export const useUiStore = defineStore('ui', () => {
@@ -64,6 +64,16 @@ export const useUiStore = defineStore('ui', () => {
     open('waypoint')
   }
 
+  /** "Nueva ubicación": formulario en blanco, para cargar una posición a mano (de una bitácora, una carta...). */
+  function openBlankWaypoint() {
+    editing.value = {
+      kind: 'new',
+      blank: true,
+      input: { description: '', recordedAt: Date.now(), lat: 0, lon: 0, speedKn: 0, bearing: 0, icon: 'locationDot', color: 'blue', visible: true },
+    }
+    open('waypoint')
+  }
+
   function openWaypoint(id: string) {
     editing.value = { kind: 'edit', id }
     open('waypoint')
@@ -85,5 +95,5 @@ export const useUiStore = defineStore('ui', () => {
     open('restore')
   }
 
-  return { sheet, view, editing, exportRequest, pendingRestore, forecastPoint, forecastSource, open, close, go, openNewWaypoint, openWaypoint, openExport, openRestore, openPointForecast }
+  return { sheet, view, editing, exportRequest, pendingRestore, forecastPoint, forecastSource, open, close, go, openNewWaypoint, openBlankWaypoint, openWaypoint, openExport, openRestore, openPointForecast }
 })

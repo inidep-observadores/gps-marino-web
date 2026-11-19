@@ -173,6 +173,7 @@ const en: Messages<typeof es> = {
   },
   waypoints: {
     title: 'Waypoints',
+    new: 'New waypoint',
     count: 'No saved waypoints | 1 saved waypoint | {n} saved waypoints',
     empty: 'No saved waypoints yet.',
     emptyHint: 'Log a position from the GPS tab or restore a backup.',
@@ -205,6 +206,7 @@ const en: Messages<typeof es> = {
   },
   waypointForm: {
     editTitle: 'Editing waypoint',
+    newTitle: 'New waypoint',
     position: 'Position',
     record: 'Record data',
     mark: 'Map mark',

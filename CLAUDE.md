@@ -96,7 +96,7 @@ apps/web/
 - **Ruta:** `stepRoute` (shared) decide aviso y avance en cada fix: llegada a 0,1 Nm o "línea de través" (≤ 0,27 Nm, > 1 kn, diferencia
   rumbo/marcación > 110°); el último punto nunca se quita solo. ETA = distancia total / velocidad promedio. Ajustes de aviso en `settings`
   (`route.arrival`). Notificación del sistema si hay permiso + aviso en pantalla siempre.
-- **Ubicaciones (fase 2):** formulario único `WaypointForm` para alta ("Registrar posición") y edición; las hojas pueden
+- **Ubicaciones (fase 2):** formulario único `WaypointForm` para alta ("Registrar posición"), alta desde cero ("Nueva ubicación": `ui.openBlankWaypoint()`, coordenadas vacías con hemisferios S/O, botón flotante `.fab` en el teléfono y botón en la tarjeta desde `md`) y edición; las hojas pueden
   pedir confirmación antes de cerrarse con `useCloseGuard` (X, fondo, Escape). Selección múltiple con botón o pulsación
   larga (`useLongPress`); al salir de la pestaña se limpia. Orden y sentido se guardan en `settings` (`waypoints.list`).
 - **Copias:** formato `MogData.json` de Flutter (fecha en µs como texto, íconos/colores por índice, también `icon`/`color`

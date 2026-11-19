@@ -65,6 +65,15 @@ export function toFormValues(input: WaypointInput): WaypointFormValues {
   }
 }
 
+/**
+ * Formulario de una ubicación "desde cero": coordenadas vacías (hay que escribirlas), hemisferios sur y oeste (el Mar Argentino),
+ * fecha y hora de ahora, velocidad y rumbo en 0, marcador azul visible en el mapa (como al registrar en el cursor).
+ */
+export function emptyFormValues(nowMs: number): WaypointFormValues {
+  const base = toFormValues({ description: '', recordedAt: nowMs, lat: 0, lon: 0, speedKn: 0, bearing: 0, icon: 'locationDot', color: 'blue', visible: true })
+  return { ...base, latDeg: '', latMin: '', latSouth: true, lonDeg: '', lonMin: '', lonWest: true }
+}
+
 export interface ParsedForm {
   errors: Partial<Record<FormField, FormError>>
   /** Solo si no hay errores. */
