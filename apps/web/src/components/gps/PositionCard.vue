@@ -6,13 +6,17 @@ import {
   Clock,
   Crosshair,
   LifeBuoy,
+  MapPin,
   MapPinPlus,
   MonitorSmartphone,
   Power,
   RotateCw,
   Satellite,
+  ShieldCheck,
   SatelliteDish,
+  Smartphone,
   TriangleAlert,
+  WifiOff,
 } from '@lucide/vue'
 import CardSection from '@/components/ui/CardSection.vue'
 import CompassDial from '@/components/gps/CompassDial.vue'
@@ -31,6 +35,15 @@ const f = useFormat()
 const gps = useGpsStore()
 const { quickSave, openSaveForm } = usePositionLog()
 
+/** Primer uso: qué hay que saber antes de activar el GPS. */
+const intro = [
+  { key: 'onScreen', icon: Smartphone },
+  { key: 'background', icon: SatelliteDish },
+  { key: 'satellites', icon: WifiOff },
+  { key: 'privacy', icon: ShieldCheck },
+  { key: 'prompt', icon: MapPin },
+] as const
+
 const permission = ref<GeoPermission>('unknown')
 onMounted(async () => (permission.value = await geoPermission()))
 
@@ -48,14 +61,15 @@ const s = computed(() => gps.current)
 
     <!-- Apagado: explicación (primer uso) y botón para activar -->
     <div v-if="gps.status === 'inactive'" class="flex flex-col gap-4">
-      <div v-if="permission !== 'granted'" class="flex flex-col gap-2.5 rounded-2xl border border-line bg-surface-2/60 p-4">
+      <div v-if="permission !== 'granted'" class="flex flex-col gap-3 rounded-2xl border border-line bg-surface-2/60 p-4">
         <h3 class="text-sm font-semibold">{{ t('gps.intro.title') }}</h3>
-        <ul class="flex list-disc flex-col gap-1.5 pl-5 text-sm text-secondary">
-          <li>{{ t('gps.intro.onScreen') }}</li>
-          <li>{{ t('gps.intro.background') }}</li>
-          <li>{{ t('gps.intro.satellites') }}</li>
-          <li>{{ t('gps.intro.privacy') }}</li>
-          <li>{{ t('gps.intro.prompt') }}</li>
+        <ul class="flex flex-col gap-2.5">
+          <li v-for="item in intro" :key="item.key" class="flex items-start gap-3 text-sm text-secondary">
+            <span class="flex size-8 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
+              <component :is="item.icon" class="size-4" aria-hidden="true" />
+            </span>
+            <span class="pt-1">{{ t(`gps.intro.${item.key}`) }}</span>
+          </li>
         </ul>
       </div>
       <p v-else class="text-sm text-secondary">{{ t('gps.activateMessage') }}</p>

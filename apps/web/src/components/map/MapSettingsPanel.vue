@@ -48,9 +48,9 @@ const setMinutes = (e: Event) => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-7">
-    <section class="flex flex-col gap-3">
-      <h3 class="eyebrow">{{ t('mapSettings.mapType') }}</h3>
+  <div class="flex flex-col gap-4">
+    <section class="panel-section">
+      <h3 class="eyebrow flex items-center gap-1.5"><MapIcon class="size-3.5" aria-hidden="true" />{{ t('mapSettings.mapType') }}</h3>
       <div class="grid grid-cols-2 gap-2" role="radiogroup" :aria-label="t('mapSettings.mapType')">
         <button
           v-for="opt in TYPES"
@@ -70,7 +70,7 @@ const setMinutes = (e: Event) => {
       <ToggleRow v-model="seamarks" :label="t('mapSettings.seamarks')" :hint="t('mapSettings.seamarksHint')" />
     </section>
 
-    <section class="flex flex-col gap-4">
+    <section class="panel-section">
       <h3 class="eyebrow flex items-center gap-1.5"><Anchor class="size-3.5" aria-hidden="true" />{{ t('mapSettings.vessel') }}</h3>
       <ToggleRow v-model="showVessel" :label="t('mapSettings.showVessel')" />
 

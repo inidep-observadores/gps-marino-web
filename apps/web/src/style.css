@@ -358,7 +358,9 @@
     @apply border-transparent bg-ink text-canvas;
   }
   .segmented {
-    @apply inline-flex w-full rounded-xl border border-line bg-surface-2 p-1;
+    @apply grid w-full gap-1 rounded-xl border border-line bg-surface-2 p-1;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
   }
   .segmented-item {
     @apply flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg px-2 text-sm font-medium text-ink-muted transition
@@ -440,9 +442,18 @@
   }
   .sheet-header {
     @apply flex items-center justify-between gap-3 border-b border-line px-5 py-4;
+    /* Halo de acento arriba, como las tarjetas con estado: la hoja se siente parte del mismo sistema. */
+    background: linear-gradient(to bottom, color-mix(in oklch, var(--ds-accent) 9%, transparent), transparent);
   }
   .sheet-title {
     @apply display text-2xl;
+  }
+  /* Sección de un panel (Ajustes, Capas, Configuración del mapa): tarjeta suave con su título arriba */
+  .panel-section {
+    @apply flex flex-col gap-3.5 rounded-2xl border border-line bg-surface-2/40 p-4;
+  }
+  .panel-section > h3 {
+    @apply -mb-0.5;
   }
   .sheet-body {
     @apply flex-1 overflow-y-auto overscroll-contain px-5 py-5;
@@ -693,6 +704,19 @@
   }
   .map-fab[aria-pressed='true'] {
     @apply border-accent ring-2 ring-accent/30;
+  }
+  /* Fila de botones del mapa: se centra si entra y se desplaza de lado si no */
+  .chip-strip {
+    @apply flex overflow-x-auto overscroll-x-contain py-0.5;
+    scrollbar-width: none;
+    /* Difuminado en los bordes: indica que hay más botones al desplazar */
+    mask-image: linear-gradient(to right, transparent, black 10px, black calc(100% - 28px), transparent);
+  }
+  .chip-strip::-webkit-scrollbar {
+    display: none;
+  }
+  .chip-strip-inner {
+    @apply mx-auto flex w-max gap-2 px-0.5;
   }
   .map-chip[aria-pressed='true'] {
     @apply border-accent text-accent;

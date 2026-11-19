@@ -341,7 +341,7 @@ onMounted(() => {
   map.touchZoomRotate.disableRotation()
   if (import.meta.env.DEV) (window as unknown as { __map: MapLibre }).__map = map
   map.addControl(new AttributionControl({ compact: true }), 'bottom-left')
-  map.addControl(new ScaleControl({ unit: 'nautical', maxWidth: 110 }), 'bottom-left')
+  map.addControl(new ScaleControl({ unit: 'nautical', maxWidth: 110 }), 'bottom-right')
 
   map.on('style.load', () => {
     if (!map) return

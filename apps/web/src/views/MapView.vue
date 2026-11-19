@@ -185,7 +185,9 @@ const night = computed(() => theme.resolved.value === 'night')
             <Navigation v-else class="size-4 text-accent" aria-hidden="true" />{{ addLabel }}
           </button>
         </div>
-        <div class="flex flex-wrap justify-center gap-2">
+        <!-- Herramientas: una sola fila que se desplaza de lado (con muchas opciones no se apila en varias filas) -->
+        <div class="chip-strip">
+          <div class="chip-strip-inner">
           <button type="button" class="map-chip" :aria-pressed="map.cursorVisible" @click="map.setCursor(!map.cursorVisible)">
             <SquareDashedMousePointer class="size-4" aria-hidden="true" />{{ map.cursorVisible ? t('mapControls.hideCursor') : t('mapControls.showCursor') }}
           </button>
@@ -200,6 +202,7 @@ const night = computed(() => theme.resolved.value === 'night')
           <button v-if="hasRoute" type="button" class="map-chip text-stop" @click="cancelRoute">
             <Route class="size-4" aria-hidden="true" />{{ t('navigation.cancelTarget') }}
           </button>
+          </div>
         </div>
       </div>
     </div>

@@ -206,6 +206,8 @@ export default {
   waypointForm: {
     editTitle: 'Editando ubicación',
     position: 'Posición',
+    record: 'Datos del registro',
+    mark: 'Marca en el mapa',
     degrees: 'Grados',
     minutes: 'Minutos',
     hemisphere: 'Hemisferio',

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Download, Eye, EyeOff, FileUp, Grid3x3, MessageSquareText, Route as RouteIcon, Trash2, Wind } from '@lucide/vue'
+import { Download, Eye, EyeOff, FileUp, Grid3x3, Layers as LayersIcon, MessageSquareText, Route as RouteIcon, Trash2, Wind } from '@lucide/vue'
 import type { BaseGroup, GraticuleMode, ImportedLayer } from '@gpsm/shared'
 import SegmentedControl, { type SegmentOption } from '@/components/ui/SegmentedControl.vue'
 import ToggleRow from '@/components/ui/ToggleRow.vue'
@@ -104,9 +104,9 @@ const featureCount = (l: ImportedLayer) => layers.importedParsed.get(l.id)?.feat
 </script>
 
 <template>
-  <div class="flex flex-col gap-7">
-    <section class="flex flex-col gap-3">
-      <h3 class="eyebrow">{{ t('layers.base') }}</h3>
+  <div class="flex flex-col gap-4">
+    <section class="panel-section">
+      <h3 class="eyebrow flex items-center gap-1.5"><LayersIcon class="size-3.5" aria-hidden="true" />{{ t('layers.base') }}</h3>
       <div v-for="g in BASE_LAYER_GROUPS" :key="g.key" class="flex items-center gap-3">
         <span class="h-1.5 w-6 shrink-0 rounded-full" :class="{ 'opacity-40': !layers.baseVisible[g.key] }" :style="swatch(g)" aria-hidden="true"></span>
         <ToggleRow v-model="toggles[g.key]!.value" class="flex-1" :label="t(`layers.groups.${g.key}`)" />
@@ -115,7 +115,7 @@ const featureCount = (l: ImportedLayer) => layers.importedParsed.get(l.id)?.feat
       <p class="text-caption">{{ t('layers.baseOffline') }}</p>
     </section>
 
-    <section class="flex flex-col gap-3">
+    <section class="panel-section">
       <h3 class="eyebrow flex items-center gap-1.5"><Grid3x3 class="size-3.5" aria-hidden="true" />{{ t('layers.grid') }}</h3>
       <ToggleRow v-model="gridOn" :label="t('layers.gridShow')" :hint="t('layers.gridHint')" />
       <!-- Resolución: solo con la cuadrícula visible. -->
@@ -125,7 +125,7 @@ const featureCount = (l: ImportedLayer) => layers.importedParsed.get(l.id)?.feat
       </template>
     </section>
 
-    <section class="flex flex-col gap-3">
+    <section class="panel-section">
       <h3 class="eyebrow flex items-center gap-1.5"><Wind class="size-3.5" aria-hidden="true" />{{ t('layers.weather') }}</h3>
       <ToggleRow v-model="windOn" :label="t('layers.wind')" :hint="t('layers.windHint')" />
       <!-- Cómo dibujar el viento: solo con la capa encendida. -->
@@ -136,7 +136,7 @@ const featureCount = (l: ImportedLayer) => layers.importedParsed.get(l.id)?.feat
       <p class="text-caption">{{ t('layers.windOffline') }}</p>
     </section>
 
-    <section class="flex flex-col gap-3">
+    <section class="panel-section">
       <h3 class="eyebrow flex items-center gap-1.5"><RouteIcon class="size-3.5" aria-hidden="true" />{{ t('tracks.title') }}</h3>
       <p class="text-caption">{{ t('tracks.hint') }}</p>
       <p v-if="!tracks.list.length" class="rounded-2xl border border-dashed border-line px-4 py-5 text-center text-sm text-secondary">{{ t('tracks.none') }}</p>
@@ -158,9 +158,9 @@ const featureCount = (l: ImportedLayer) => layers.importedParsed.get(l.id)?.feat
       </ul>
     </section>
 
-    <section class="flex flex-col gap-3">
+    <section class="panel-section">
       <div class="flex items-center justify-between gap-3">
-        <h3 class="eyebrow">{{ t('layers.imported') }}</h3>
+        <h3 class="eyebrow flex items-center gap-1.5"><FileUp class="size-3.5" aria-hidden="true" />{{ t('layers.imported') }}</h3>
         <button type="button" class="btn-secondary h-9" :disabled="busy" @click="fileInput?.click()">
           <FileUp class="size-4" aria-hidden="true" />{{ t('layers.import') }}
         </button>

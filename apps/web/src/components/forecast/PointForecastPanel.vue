@@ -106,7 +106,7 @@ const stale = computed(() => !!store.data && Date.now() - store.data.fetchedAt >
         </div>
       </div>
 
-      <section class="flex flex-col gap-1.5">
+      <section class="panel-section gap-2">
         <h3 class="eyebrow">{{ t('pointForecast.windChart') }}</h3>
         <HourlyChart v-model:selected="selected" :hours="hours" :lines="windLines" :bands="bands" :min-max="20" unit="kn" :now-ms="now" :label="t('pointForecast.windChart')" />
         <p class="text-caption flex gap-3">
@@ -115,7 +115,7 @@ const stale = computed(() => !!store.data && Date.now() - store.data.fetchedAt >
         </p>
       </section>
 
-      <section v-if="store.data.hasWaves" class="flex flex-col gap-1.5">
+      <section v-if="store.data.hasWaves" class="panel-section gap-2">
         <h3 class="eyebrow">{{ t('pointForecast.waveChart') }}</h3>
         <HourlyChart v-model:selected="selected" :hours="hours" :lines="waveLines" :min-max="2" unit="m" :now-ms="now" :label="t('pointForecast.waveChart')" />
         <p class="text-caption flex gap-3">

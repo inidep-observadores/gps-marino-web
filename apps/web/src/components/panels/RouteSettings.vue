@@ -35,7 +35,7 @@ async function askPermission() {
 </script>
 
 <template>
-  <section class="flex flex-col gap-4">
+  <section class="panel-section">
     <h3 class="eyebrow flex items-center gap-1.5"><Route class="size-3.5" aria-hidden="true" />{{ t('settings.routes') }}</h3>
     <ToggleRow v-model="notifyArrival" :label="t('settings.notifyArrival')" />
     <label class="field">

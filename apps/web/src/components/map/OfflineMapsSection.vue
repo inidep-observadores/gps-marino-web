@@ -93,7 +93,7 @@ async function clear() {
 </script>
 
 <template>
-  <section class="flex flex-col gap-3">
+  <section class="panel-section">
     <h3 class="eyebrow flex items-center gap-1.5"><HardDriveDownload class="size-3.5" aria-hidden="true" />{{ t('offlineMaps.title') }}</h3>
     <p class="text-caption">{{ t('offlineMaps.intro') }}</p>
 

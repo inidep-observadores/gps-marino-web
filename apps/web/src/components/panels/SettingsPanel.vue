@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Database, Download, Monitor, Moon, MoonStar, Sun } from '@lucide/vue'
+import { Database, Download, Monitor, Moon, MoonStar, Palette, Sun } from '@lucide/vue'
 import RouteSettings from '@/components/panels/RouteSettings.vue'
 import SegmentedControl, { type SegmentOption } from '@/components/ui/SegmentedControl.vue'
 import StatusPill from '@/components/ui/StatusPill.vue'
@@ -64,12 +64,12 @@ const version = __APP_VERSION__
 </script>
 
 <template>
-  <div class="flex flex-col gap-7">
-    <section class="flex flex-col gap-3">
-      <h3 class="eyebrow">{{ t('settings.appearance') }}</h3>
+  <div class="flex flex-col gap-4">
+    <section class="panel-section">
+      <h3 class="eyebrow flex items-center gap-1.5"><Palette class="size-3.5" aria-hidden="true" />{{ t('settings.appearance') }}</h3>
       <div class="field">
         <span class="field-label">{{ t('settings.theme') }}</span>
-        <SegmentedControl v-model="prefs.theme" :options="themeOptions" :label="t('settings.theme')" />
+        <SegmentedControl v-model="prefs.theme" class="max-sm:grid-flow-row max-sm:grid-cols-2" :options="themeOptions" :label="t('settings.theme')" />
         <p v-if="prefs.theme === 'night'" class="text-caption">{{ t('settings.themeNightHint') }}</p>
       </div>
       <div class="field">
@@ -80,7 +80,7 @@ const version = __APP_VERSION__
 
     <RouteSettings />
 
-    <section class="flex flex-col gap-3">
+    <section class="panel-section">
       <h3 class="eyebrow flex items-center gap-1.5"><Database class="size-3.5" aria-hidden="true" />{{ t('settings.storage') }}</h3>
       <div class="readout gap-3">
         <StatusPill class="self-start" :status="storageStatus.status" :label="storageStatus.label" />

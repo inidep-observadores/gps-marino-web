@@ -205,6 +205,8 @@ const en: Messages<typeof es> = {
   waypointForm: {
     editTitle: 'Editing waypoint',
     position: 'Position',
+    record: 'Record data',
+    mark: 'Map mark',
     degrees: 'Degrees',
     minutes: 'Minutes',
     hemisphere: 'Hemisphere',

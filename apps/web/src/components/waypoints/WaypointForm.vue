@@ -3,6 +3,7 @@ import { computed, nextTick, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ListPlus, Navigation, Trash2 } from '@lucide/vue'
 import { DEFAULT_MARK_ICON, type WaypointInput } from '@gpsm/shared'
+import MarkGlyph from '@/components/marks/MarkGlyph.vue'
 import MarkColorPicker from '@/components/marks/MarkColorPicker.vue'
 import MarkIconPicker from '@/components/marks/MarkIconPicker.vue'
 import SegmentedControl from '@/components/ui/SegmentedControl.vue'
@@ -113,7 +114,7 @@ const err = (f: FormField) => errors.value[f]
 </script>
 
 <template>
-  <form ref="root" class="flex flex-col gap-5" novalidate @submit.prevent="save">
+  <form ref="root" class="flex flex-col gap-4" novalidate @submit.prevent="save">
     <!-- Acciones de una ubicación existente -->
     <div v-if="existing" class="grid grid-cols-2 gap-2">
       <button type="button" class="btn-secondary" @click="navigateHere">
@@ -124,14 +125,20 @@ const err = (f: FormField) => errors.value[f]
       </button>
     </div>
 
-    <label class="field">
-      <span class="field-label">{{ t('savePosition.description') }}</span>
-      <input v-model="form.description" class="input" maxlength="500" enterkeyhint="done" :placeholder="t('savePosition.descriptionPlaceholder')" />
-    </label>
+    <div class="flex items-end gap-3">
+      <!-- Vista previa de la marca elegida (ícono y color) -->
+      <span class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-line bg-surface-2 text-xl" aria-hidden="true">
+        <MarkGlyph :icon="form.icon" :color="form.color" />
+      </span>
+      <label class="field min-w-0 flex-1">
+        <span class="field-label">{{ t('savePosition.description') }}</span>
+        <input v-model="form.description" class="input" maxlength="500" enterkeyhint="done" :placeholder="t('savePosition.descriptionPlaceholder')" />
+      </label>
+    </div>
 
     <!-- Latitud y longitud en grados, minutos y hemisferio -->
-    <fieldset class="flex flex-col gap-3">
-      <legend class="field-label mb-1.5">{{ t('waypointForm.position') }}</legend>
+    <fieldset class="panel-section">
+      <legend class="eyebrow float-left mb-1 w-full">{{ t('waypointForm.position') }}</legend>
       <div v-for="axis in (['lat', 'lon'] as const)" :key="axis" class="flex flex-col gap-1.5">
         <span class="text-caption">{{ axis === 'lat' ? t('gps.latitude') : t('gps.longitude') }}</span>
         <div class="flex items-center gap-2">
@@ -164,15 +171,17 @@ const err = (f: FormField) => errors.value[f]
       </div>
     </fieldset>
 
-    <div class="grid grid-cols-2 gap-3">
+    <section class="panel-section">
+      <h3 class="eyebrow">{{ t('waypointForm.record') }}</h3>
+      <div class="grid grid-cols-2 gap-3">
       <label class="field">
         <span class="field-label">{{ t('gps.date') }}</span>
-        <input v-model="form.date" type="date" class="input numeric" :aria-invalid="!!err('date')" />
+        <input v-model="form.date" type="date" class="input numeric px-2.5 text-[0.9rem]!" :aria-invalid="!!err('date')" />
         <span v-if="err('date')" class="text-xs text-stop">{{ err('date') }}</span>
       </label>
       <label class="field">
         <span class="field-label">{{ t('gps.time') }}</span>
-        <input v-model="form.time" type="time" step="1" class="input numeric" :aria-invalid="!!err('time')" />
+        <input v-model="form.time" type="time" step="1" class="input numeric px-2.5 text-[0.9rem]!" :aria-invalid="!!err('time')" />
         <span v-if="err('time')" class="text-xs text-stop">{{ err('time') }}</span>
       </label>
       <label class="field">
@@ -185,19 +194,21 @@ const err = (f: FormField) => errors.value[f]
         <input v-model="form.bearing" class="input numeric" inputmode="numeric" :aria-invalid="!!err('bearing')" />
         <span v-if="err('bearing')" class="text-xs text-stop">{{ err('bearing') }}</span>
       </label>
-    </div>
+      </div>
+    </section>
 
-    <div class="field">
-      <span class="field-label">{{ t('savePosition.color') }}</span>
-      <MarkColorPicker v-model="form.color" :label="t('savePosition.color')" />
-    </div>
-
-    <div class="field">
-      <span class="field-label">{{ t('savePosition.icon') }}</span>
-      <MarkIconPicker v-model="form.icon" :color="form.color" :label="t('savePosition.icon')" />
-    </div>
-
-    <ToggleRow v-model="form.visible" :label="t('savePosition.visible')" />
+    <section class="panel-section">
+      <h3 class="eyebrow">{{ t('waypointForm.mark') }}</h3>
+      <div class="field">
+        <span class="field-label">{{ t('savePosition.color') }}</span>
+        <MarkColorPicker v-model="form.color" :label="t('savePosition.color')" />
+      </div>
+      <div class="field">
+        <span class="field-label">{{ t('savePosition.icon') }}</span>
+        <MarkIconPicker v-model="form.icon" :color="form.color" :label="t('savePosition.icon')" />
+      </div>
+      <ToggleRow v-model="form.visible" :label="t('savePosition.visible')" />
+    </section>
 
     <button v-if="existing" type="button" class="btn-ghost self-start text-stop" @click="remove">
       <Trash2 class="size-4" aria-hidden="true" />{{ t('waypoints.delete') }}

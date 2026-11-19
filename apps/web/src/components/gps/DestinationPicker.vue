@@ -64,7 +64,7 @@ function append(w: Waypoint) {
           </span>
           <span class="flex min-w-0 flex-1 flex-col">
             <span class="truncate text-sm font-medium" :class="{ 'text-ink-subtle italic': !w.description }">{{ nameOf(w) }}</span>
-            <span class="numeric truncate text-xs text-ink-subtle">{{ f.lat(w.lat) }} · {{ f.lon(w.lon) }}</span>
+            <span class="numeric flex flex-col text-xs leading-snug text-ink-subtle min-[420px]:flex-row min-[420px]:gap-2"><span>{{ f.lat(w.lat) }}</span><span>{{ f.lon(w.lon) }}</span></span>
           </span>
           <span v-if="relative(w)" class="numeric flex shrink-0 flex-col items-end text-xs text-ink-muted">
             <span>{{ f.distance(relative(w)!.nm) }} {{ t('units.nm') }}</span>
