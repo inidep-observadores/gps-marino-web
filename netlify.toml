@@ -1,0 +1,41 @@
+# Despliegue del frontend (PWA) en Netlify desde GitHub. La API (apps/api) NO se despliega aquí.
+[build]
+  # Solo la web y sus dependencias (no instala Prisma ni lo de la API).
+  command = "corepack enable && pnpm install --frozen-lockfile --filter @gpsm/web... && pnpm --filter @gpsm/web build"
+  publish = "apps/web/dist"
+
+[build.environment]
+  NODE_VERSION = "24"
+
+# Rutas desconocidas vuelven a la app (la navegación es por hash, esto es una red de seguridad).
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# El service worker y el shell nunca se cachean en el CDN: así una versión nueva se detecta al abrir la app.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Cache-Control = "no-cache"
+# Archivos con hash en el nombre: se pueden cachear para siempre.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    # La geolocalización y las notificaciones las usa la app; el resto se desactiva.
+    Permissions-Policy = "geolocation=(self), camera=(), microphone=()"

@@ -30,3 +30,10 @@ Fase 4 (capas) terminada: capas base de la app Flutter (costas, áreas generales
 Fase 5 (en curso): descarga de zonas del mapa para usar sin conexión y capa de viento con pronóstico (animación sobre el mapa, selector de fecha y hora, caché sin conexión). Falta probar en teléfonos reales (ver PLAN.md §8). Próximo: fase 6 (oleaje, gráficos y track).
 
 Fase 6 terminada: pronóstico de un punto del mapa (viento, ráfagas, olas y mar de fondo, con gráficos) y registro de derrota (grabación, dibujo en el mapa y exportación GPX). Próximo: fase 7 (API NestJS) de la etapa 2.
+
+## Despliegue del frontend en Netlify
+
+El repositorio trae `netlify.toml` listo: en Netlify, **Add new site → Import from Git**, elegir el repo y dejar los valores por defecto
+(lee el comando de build, la carpeta `apps/web/dist` y Node 24 del archivo). Solo se construye la web; la API (`apps/api`) no se despliega
+en Netlify y la web todavía no la usa, así que no hace falta ninguna variable de entorno. Cada `git push` a la rama configurada publica una versión.
+La PWA exige HTTPS (Netlify lo da) para instalarse, usar el GPS y funcionar sin conexión.
