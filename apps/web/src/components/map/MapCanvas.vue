@@ -247,13 +247,13 @@ function addOverlay(m: MapLibre) {
     paint: { 'text-color': colors.accent, ...halo },
   })
   // Derrotas guardadas (cada una con su color) y la que se está grabando (rojo, para distinguirla del resto).
-  m.addLayer({ id: 'tracks-casing', type: 'line', source: 'tracks', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': colors.canvas, 'line-width': 5, 'line-opacity': 0.6 } })
+  m.addLayer({ id: 'tracks-casing', type: 'line', source: 'tracks', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': colors.canvas, 'line-width': 4, 'line-opacity': 0.3 } })
   m.addLayer({
     id: 'tracks',
     type: 'line',
     source: 'tracks',
     layout: { 'line-cap': 'round', 'line-join': 'round' },
-    paint: { 'line-color': ['case', ['get', 'active'], colors.markRed, trackColorExpr(colors)], 'line-width': 2.5 },
+    paint: { 'line-color': ['case', ['get', 'active'], colors.markRed, trackColorExpr(colors)], 'line-width': 2, 'line-opacity': 0.65 },
   })
   m.addLayer({ id: 'route-casing', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': colors.canvas, 'line-width': 6, 'line-opacity': 0.7 } })
   m.addLayer({ id: 'route', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': colors.caution, 'line-width': 3 } })
@@ -313,14 +313,14 @@ function addOverlay(m: MapLibre) {
     paint: { 'circle-radius': 5, 'circle-color': colors.surface, 'circle-stroke-color': colors.ink, 'circle-stroke-width': 2.5 },
   })
   // Derrota en reproducción: lo que falta, punteado y más suave; lo recorrido, continuo; y el buque en su posición.
-  m.addLayer({ id: 'trackplay-casing', type: 'line', source: 'trackplay', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': colors.canvas, 'line-width': 6, 'line-opacity': 0.6 } })
+  m.addLayer({ id: 'trackplay-casing', type: 'line', source: 'trackplay', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': colors.canvas, 'line-width': 4.5, 'line-opacity': 0.3 } })
   m.addLayer({
     id: 'trackplay-rest',
     type: 'line',
     source: 'trackplay',
     filter: ['==', ['get', 'kind'], 'rest'],
     layout: { 'line-join': 'round' },
-    paint: { 'line-color': trackColorExpr(colors), 'line-width': 2.5, 'line-opacity': 0.75, 'line-dasharray': [2, 2] },
+    paint: { 'line-color': trackColorExpr(colors), 'line-width': 2, 'line-opacity': 0.5, 'line-dasharray': [2, 2] },
   })
   m.addLayer({
     id: 'trackplay-done',
@@ -328,7 +328,7 @@ function addOverlay(m: MapLibre) {
     source: 'trackplay',
     filter: ['==', ['get', 'kind'], 'done'],
     layout: { 'line-cap': 'round', 'line-join': 'round' },
-    paint: { 'line-color': trackColorExpr(colors), 'line-width': 3.5 },
+    paint: { 'line-color': trackColorExpr(colors), 'line-width': 2.5, 'line-opacity': 0.65 },
   })
   // Aro de contraste bajo el buque de la derrota: así no se pierde sobre su propia línea.
   m.addLayer({
