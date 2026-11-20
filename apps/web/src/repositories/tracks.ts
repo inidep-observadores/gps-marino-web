@@ -13,12 +13,13 @@ export interface Track {
   distanceNm: number
   pointCount: number
   visible: boolean
+  color: number | null
 }
 
 export interface TrackRepository {
   /** Derrotas vigentes, de la más reciente a la más antigua. */
   list(): Promise<Track[]>
-  create(name: string, startedAt: number): Promise<Track>
+  create(name: string, startedAt: number, color?: number | null): Promise<Track>
   /** Agrega puntos al final (en una transacción) y actualiza distancia y cantidad. */
   append(id: string, points: TrackPoint[]): Promise<void>
   /** Cierra la derrota (queda con hora de fin). */
@@ -33,7 +34,7 @@ export interface TrackRepository {
 }
 
 type Row = typeof tracks.$inferSelect
-const toTrack = (r: Row): Track => ({ id: r.id, name: r.name, startedAt: r.startedAt, endedAt: r.endedAt, distanceNm: r.distanceNm, pointCount: r.pointCount, visible: r.visible })
+const toTrack = (r: Row): Track => ({ id: r.id, name: r.name, startedAt: r.startedAt, endedAt: r.endedAt, distanceNm: r.distanceNm, pointCount: r.pointCount, visible: r.visible, color: r.color })
 
 const CHUNK = 150 // 7 columnas × 150 = 1050 parámetros por sentencia
 
@@ -48,9 +49,9 @@ export function createTrackRepository(db: AppDatabase, clock: Clock = systemCloc
     async unfinished() {
       return (await db.select().from(tracks).where(and(alive, isNull(tracks.endedAt)))).map(toTrack)
     },
-    async create(name, startedAt) {
+    async create(name, startedAt, color = null) {
       const now = clock()
-      const row = { id: uuidv7(now), name, startedAt, endedAt: null, distanceNm: 0, pointCount: 0, visible: true, createdAt: now, updatedAt: now, deletedAt: null, dirty: true }
+      const row = { id: uuidv7(now), name, startedAt, endedAt: null, distanceNm: 0, pointCount: 0, visible: true, color, createdAt: now, updatedAt: now, deletedAt: null, dirty: true }
       await db.insert(tracks).values(row)
       return toTrack({ ...row, serverVersion: null })
     },

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref, shallowRef, watch } from 'vue'
-import { DEFAULT_RECORD_RULES, shouldRecord, trackToGeoJson, trackToGpx, trackStats, type TrackPoint } from '@gpsm/shared'
+import { DEFAULT_RECORD_RULES, pickTrackColor, shouldRecord, trackColorIndex, trackToGeoJson, trackToGpx, trackStats, type TrackPoint } from '@gpsm/shared'
 import { i18n } from '@/i18n'
 import { formatNumber } from '@/i18n/numbers'
 import type { Track } from '@/repositories/tracks'
@@ -63,7 +63,7 @@ export const useTracksStore = defineStore('tracks', () => {
   async function start() {
     if (recording.value) return
     if (!gps.active) gps.start()
-    const t = await (await repo()).create(defaultName(), Date.now())
+    const t = await (await repo()).create(defaultName(), Date.now(), pickTrackColor(list.value.map((x) => x.color)))
     recording.value = t
     activePoints.value = []
     pending = []
@@ -157,7 +157,7 @@ export const useTracksStore = defineStore('tracks', () => {
     for (const f of found) {
       const name = f.name ?? trackNameFromFile(f.fileName)
       const first = f.points[0]!
-      const t = await r.create(name, first.t)
+      const t = await r.create(name, first.t, pickTrackColor([...list.value, ...created].map((x) => x.color)))
       await r.append(t.id, f.points)
       await r.finish(t.id, f.points[f.points.length - 1]!.t)
       await r.setVisible(t.id, false)
@@ -186,7 +186,7 @@ export const useTracksStore = defineStore('tracks', () => {
       .filter(([, pts]) => pts.length >= 2)
       .map(([id, pts]) => ({
         type: 'Feature' as const,
-        properties: { id, active: id === recording.value?.id },
+        properties: { id, active: id === recording.value?.id, color: trackColorIndex(id, list.value.find((x) => x.id === id)?.color) },
         geometry: { type: 'LineString' as const, coordinates: pts.map((p) => [p.lon, p.lat] as [number, number]) },
       }))
     return { type: 'FeatureCollection' as const, features }

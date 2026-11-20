@@ -36,6 +36,16 @@
   --ds-mark-green: oklch(0.62 0.17 145);
   --ds-mark-blue: oklch(0.58 0.2 258);
   --ds-mark-orange: oklch(0.7 0.18 52);
+  --ds-track-0: oklch(0.6 0.19 258);
+  --ds-track-1: oklch(0.6 0.19 205);
+  --ds-track-2: oklch(0.6 0.19 175);
+  --ds-track-3: oklch(0.6 0.19 145);
+  --ds-track-4: oklch(0.6 0.19 115);
+  --ds-track-5: oklch(0.6 0.19 80);
+  --ds-track-6: oklch(0.6 0.19 50);
+  --ds-track-7: oklch(0.6 0.19 335);
+  --ds-track-8: oklch(0.6 0.19 300);
+  --ds-track-9: oklch(0.6 0.19 355);
   --ds-canvas: oklch(0.972 0.003 255);
   --ds-surface: oklch(1 0 0);
   --ds-surface-2: oklch(0.953 0.004 255);
@@ -81,6 +91,16 @@
   --ds-mark-green: oklch(0.78 0.17 148);
   --ds-mark-blue: oklch(0.72 0.15 250);
   --ds-mark-orange: oklch(0.8 0.15 60);
+  --ds-track-0: oklch(0.74 0.15 258);
+  --ds-track-1: oklch(0.74 0.15 205);
+  --ds-track-2: oklch(0.74 0.15 175);
+  --ds-track-3: oklch(0.74 0.15 145);
+  --ds-track-4: oklch(0.74 0.15 115);
+  --ds-track-5: oklch(0.74 0.15 80);
+  --ds-track-6: oklch(0.74 0.15 50);
+  --ds-track-7: oklch(0.74 0.15 335);
+  --ds-track-8: oklch(0.74 0.15 300);
+  --ds-track-9: oklch(0.74 0.15 355);
   color-scheme: dark;
 }
 
@@ -119,6 +139,16 @@
   --ds-mark-green: oklch(0.55 0.1 60);
   --ds-mark-blue: oklch(0.5 0.12 340);
   --ds-mark-orange: oklch(0.66 0.15 45);
+  --ds-track-0: oklch(0.58 0.11 258);
+  --ds-track-1: oklch(0.58 0.11 205);
+  --ds-track-2: oklch(0.58 0.11 175);
+  --ds-track-3: oklch(0.58 0.11 145);
+  --ds-track-4: oklch(0.58 0.11 115);
+  --ds-track-5: oklch(0.58 0.11 80);
+  --ds-track-6: oklch(0.58 0.11 50);
+  --ds-track-7: oklch(0.58 0.11 335);
+  --ds-track-8: oklch(0.58 0.11 300);
+  --ds-track-9: oklch(0.58 0.11 355);
   color-scheme: dark;
 }
 
@@ -157,6 +187,16 @@
   --color-mark-green: var(--ds-mark-green);
   --color-mark-blue: var(--ds-mark-blue);
   --color-mark-orange: var(--ds-mark-orange);
+  --color-track-0: var(--ds-track-0);
+  --color-track-1: var(--ds-track-1);
+  --color-track-2: var(--ds-track-2);
+  --color-track-3: var(--ds-track-3);
+  --color-track-4: var(--ds-track-4);
+  --color-track-5: var(--ds-track-5);
+  --color-track-6: var(--ds-track-6);
+  --color-track-7: var(--ds-track-7);
+  --color-track-8: var(--ds-track-8);
+  --color-track-9: var(--ds-track-9);
 
   --radius-card: 1.25rem;
   --shadow-card: var(--ds-shadow);

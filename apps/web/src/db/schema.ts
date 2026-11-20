@@ -93,6 +93,8 @@ export const tracks = sqliteTable(
     pointCount: integer('point_count').notNull().default(0),
     /** Mostrar la derrota en el mapa. */
     visible: integer('visible', { mode: 'boolean' }).notNull().default(true),
+    /** Índice del color en el mapa (`TRACK_COLOR_COUNT`); `null` en derrotas anteriores (el color sale del id). */
+    color: integer('color'),
   },
   (t) => [index('tracks_started_at_idx').on(t.startedAt)],
 )

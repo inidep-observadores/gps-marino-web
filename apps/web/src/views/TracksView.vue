@@ -2,7 +2,7 @@
 import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Check, Download, Eye, FileJson, EyeOff, FileUp, Pencil, Play, Route as RouteIcon, Trash2, X } from '@lucide/vue'
-import { ASSUMED_SPEED_KN } from '@gpsm/shared'
+import { ASSUMED_SPEED_KN, trackColorIndex } from '@gpsm/shared'
 import CardSection from '@/components/ui/CardSection.vue'
 import { useConfirm } from '@/composables/useConfirm'
 import { useFormat } from '@/composables/useFormat'
@@ -132,7 +132,10 @@ const sub = computed(() => (tracks.list.length ? t('tracks.count', tracks.list.l
             <span v-if="renameError" class="text-xs text-stop">{{ t('tracks.nameEmpty') }}</span>
           </div>
           <span v-else class="flex min-w-0 flex-1 flex-col">
-            <span class="truncate text-sm font-semibold" :class="{ 'text-ink-subtle': !tr.visible && player.track?.id !== tr.id }">{{ tr.name }}</span>
+            <span class="flex min-w-0 items-center gap-2">
+              <span class="h-1.5 w-5 shrink-0 rounded-full" :style="{ background: `var(--ds-track-${trackColorIndex(tr.id, tr.color)})` }" aria-hidden="true"></span>
+              <span class="truncate text-sm font-semibold" :class="{ 'text-ink-subtle': !tr.visible && player.track?.id !== tr.id }">{{ tr.name }}</span>
+            </span>
             <span class="numeric text-xs text-ink-subtle">
               <template v-if="tracks.recording?.id === tr.id">● {{ t('tracks.recording') }} · </template>{{ f.distance(tr.distanceNm) }} {{ t('units.nm') }} · {{ duration(tr.startedAt, tr.endedAt) }} · {{ t('tracks.points', tr.pointCount) }}
             </span>

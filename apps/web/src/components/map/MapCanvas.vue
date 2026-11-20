@@ -32,6 +32,7 @@ import {
   toPos,
   waypointFeatures,
   type LatLon,
+  trackColorIndex,
 } from '@gpsm/shared'
 import { useTheme } from '@/composables/useTheme'
 import { useGpsStore } from '@/stores/gps'
@@ -44,7 +45,7 @@ import { useWaypointsStore } from '@/stores/waypoints'
 import { useWindStore } from '@/stores/wind'
 import { syncVectorLayers, tappableLayerIds } from './mapLayers'
 import { markImage, vesselImage, vesselStillImage } from './mapImages'
-import { GLYPHS, LABEL_FONT, LABEL_FONT_BOLD, SEAMARKS_ATTR, SEAMARKS_TILES, palette, rasterBaseStyle, type Palette } from './mapStyles'
+import { GLYPHS, LABEL_FONT, LABEL_FONT_BOLD, SEAMARKS_ATTR, SEAMARKS_TILES, palette, rasterBaseStyle, trackColorExpr, type Palette } from './mapStyles'
 import { NauticalScaleControl } from './nauticalScale'
 import { WindBarbs } from './windBarbs'
 import { WindParticles } from './windParticles'
@@ -110,7 +111,8 @@ const vesselData = () => {
 const playLinesData = () => {
   const sp = player.split
   if (!sp) return EMPTY
-  const line = (kind: string, c: [number, number][]) => ({ type: 'Feature' as const, properties: { kind }, geometry: { type: 'LineString' as const, coordinates: c } })
+  const color = trackColorIndex(player.track?.id ?? '', player.track?.color)
+  const line = (kind: string, c: [number, number][]) => ({ type: 'Feature' as const, properties: { kind, color }, geometry: { type: 'LineString' as const, coordinates: c } })
   return { type: 'FeatureCollection' as const, features: [sp.rest.length >= 2 ? line('rest', sp.rest) : null, sp.done.length >= 2 ? line('done', sp.done) : null].filter((f) => f != null) }
 }
 const playVesselData = () => {
@@ -244,14 +246,14 @@ function addOverlay(m: MapLibre) {
     layout: { 'text-field': ringLabelExpression(), 'text-font': LABEL_FONT, 'text-size': 11, 'text-allow-overlap': true },
     paint: { 'text-color': colors.accent, ...halo },
   })
-  // Derrotas grabadas (azul) y la que se está grabando (rojo, para distinguirla del resto).
+  // Derrotas guardadas (cada una con su color) y la que se está grabando (rojo, para distinguirla del resto).
   m.addLayer({ id: 'tracks-casing', type: 'line', source: 'tracks', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': colors.canvas, 'line-width': 5, 'line-opacity': 0.6 } })
   m.addLayer({
     id: 'tracks',
     type: 'line',
     source: 'tracks',
     layout: { 'line-cap': 'round', 'line-join': 'round' },
-    paint: { 'line-color': ['case', ['get', 'active'], colors.markRed, colors.markBlue], 'line-width': 2.5 },
+    paint: { 'line-color': ['case', ['get', 'active'], colors.markRed, trackColorExpr(colors)], 'line-width': 2.5 },
   })
   m.addLayer({ id: 'route-casing', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': colors.canvas, 'line-width': 6, 'line-opacity': 0.7 } })
   m.addLayer({ id: 'route', type: 'line', source: 'route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': colors.caution, 'line-width': 3 } })
@@ -318,7 +320,7 @@ function addOverlay(m: MapLibre) {
     source: 'trackplay',
     filter: ['==', ['get', 'kind'], 'rest'],
     layout: { 'line-join': 'round' },
-    paint: { 'line-color': colors.accent, 'line-width': 2.5, 'line-opacity': 0.75, 'line-dasharray': [2, 2] },
+    paint: { 'line-color': trackColorExpr(colors), 'line-width': 2.5, 'line-opacity': 0.75, 'line-dasharray': [2, 2] },
   })
   m.addLayer({
     id: 'trackplay-done',
@@ -326,7 +328,7 @@ function addOverlay(m: MapLibre) {
     source: 'trackplay',
     filter: ['==', ['get', 'kind'], 'done'],
     layout: { 'line-cap': 'round', 'line-join': 'round' },
-    paint: { 'line-color': colors.accent, 'line-width': 3.5 },
+    paint: { 'line-color': trackColorExpr(colors), 'line-width': 3.5 },
   })
   // Aro de contraste bajo el buque de la derrota: así no se pierde sobre su propia línea.
   m.addLayer({

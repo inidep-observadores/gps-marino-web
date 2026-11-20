@@ -1,4 +1,5 @@
-import type { StyleSpecification } from 'maplibre-gl'
+import type { ExpressionSpecification, StyleSpecification } from 'maplibre-gl'
+import { TRACK_COLOR_COUNT } from '@gpsm/shared'
 
 /**
  * Tipos de mapa (los de la app Flutter con Google Maps) con fuentes sin clave de API:
@@ -121,6 +122,13 @@ export function palette() {
     markGreen: tokenColor('--ds-mark-green'),
     markBlue: tokenColor('--ds-mark-blue'),
     markOrange: tokenColor('--ds-mark-orange'),
+    /** Colores de las derrotas (índice = `trackColorIndex`). */
+    tracks: Array.from({ length: TRACK_COLOR_COUNT }, (_, i) => tokenColor(`--ds-track-${i}`)),
   }
 }
 export type Palette = ReturnType<typeof palette>
+
+/** Color de una derrota según la propiedad `color` (índice de paleta) de cada elemento. */
+export function trackColorExpr(c: Palette): ExpressionSpecification {
+  return ['match', ['get', 'color'], ...c.tracks.flatMap((col, i) => [i, col]), c.tracks[0]!] as unknown as ExpressionSpecification
+}
