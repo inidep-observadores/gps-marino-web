@@ -115,7 +115,7 @@ function startSelection() {
           <button type="button" class="chip" @click="fileInput?.click()">
             <FileUp class="size-4" aria-hidden="true" />{{ t('waypoints.restore') }}
           </button>
-          <input ref="fileInput" type="file" class="sr-only" tabindex="-1" aria-hidden="true" @change="onFile" />
+          <input ref="fileInput" type="file" accept=".geojson,.json,.gpx,.zip,.dbf,application/*,text/*" class="sr-only" tabindex="-1" aria-hidden="true" @change="onFile" />
         </div>
         <p v-if="store.backupDue" class="flex items-start gap-2 rounded-2xl bg-caution/10 px-3.5 py-2.5 text-sm" data-status="yellow">
           <ShieldAlert class="mt-0.5 size-4 shrink-0 text-status" aria-hidden="true" />

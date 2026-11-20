@@ -168,7 +168,7 @@ const featureCount = (l: ImportedLayer) => layers.importedParsed.get(l.id)?.feat
           <FileUp class="size-4" aria-hidden="true" />{{ t('layers.import') }}
         </button>
         <!-- Sin `accept`: en Android filtra mal .gpx/.geojson y los deja grises. -->
-        <input ref="fileInput" type="file" class="sr-only" tabindex="-1" aria-hidden="true" @change="onFile" />
+        <input ref="fileInput" type="file" accept=".geojson,.json,.gpx,.zip,.dbf,application/*,text/*" class="sr-only" tabindex="-1" aria-hidden="true" @change="onFile" />
       </div>
       <p class="text-caption">{{ t('layers.importHint') }}</p>
 

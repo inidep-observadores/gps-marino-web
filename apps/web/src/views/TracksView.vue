@@ -101,8 +101,8 @@ const sub = computed(() => (tracks.list.length ? t('tracks.count', tracks.list.l
           <button type="button" class="btn-primary" :disabled="busy" @click="fileInput?.click()">
             <FileUp class="size-4" aria-hidden="true" />{{ t('tracks.import') }}
           </button>
-          <!-- Sin `accept`: en Android filtra mal .gpx/.geojson y los deja grises. -->
-          <input ref="fileInput" type="file" class="sr-only" tabindex="-1" aria-hidden="true" @change="onFile" />
+          <!-- `accept` solo con extensiones y application/* o text/*: sin él (o con image/*) Android abre el selector de fotos en vez del de archivos. -->
+          <input ref="fileInput" type="file" accept=".geojson,.json,.gpx,.zip,.dbf,application/*,text/*" class="sr-only" tabindex="-1" aria-hidden="true" @change="onFile" />
           <span class="text-caption">{{ t('tracks.importHint') }}</span>
         </div>
       </div>
