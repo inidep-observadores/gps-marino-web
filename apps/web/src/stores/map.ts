@@ -43,6 +43,8 @@ export type SelectedFeature = { kind: 'waypoint'; id: string } | { kind: 'featur
 export interface MapController {
   zoomBy(delta: number): void
   flyTo(p: LatLon, zoom?: number): void
+  /** Encuadra todos los puntos con margen para los paneles (reproductor de derrotas). */
+  fitTo(points: LatLon[]): void
   /** Rectángulo visible ahora. */
   getBounds(): Bounds
 }

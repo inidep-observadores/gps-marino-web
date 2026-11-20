@@ -9,6 +9,7 @@ import { useLayersStore } from './stores/layers'
 import { useMapStore } from './stores/map'
 import { useNavigationStore } from './stores/navigation'
 import { usePrefsStore } from './stores/prefs'
+import { useTrackPlayerStore } from './stores/trackPlayer'
 import { useTracksStore } from './stores/tracks'
 import { useWaypointsStore } from './stores/waypoints'
 import { useWindStore } from './stores/wind'
@@ -39,6 +40,7 @@ const mapStore = useMapStore()
 const layers = useLayersStore()
 const wind = useWindStore()
 const tracks = useTracksStore()
+const player = useTrackPlayerStore()
 void database
   .open()
   .then(() => Promise.all([navigation.load(), waypoints.load(), mapStore.load(), layers.load(), wind.load(), tracks.load()]))
@@ -59,6 +61,7 @@ if (import.meta.env.DEV) {
       layers,
       wind,
       tracks,
+      player,
       /** `__gpsm.simulate({ lat: -38, lon: -57.5, speedKn: 8, courseDeg: 135 })` → devuelve el control (`.set({...})`). */
       simulate(opts: Parameters<typeof createSimulatedSource>[0]) {
         const src = createSimulatedSource(opts)

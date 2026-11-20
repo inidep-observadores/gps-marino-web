@@ -11,12 +11,13 @@ import BeaufortView from '@/views/BeaufortView.vue'
 import ConverterView from '@/views/ConverterView.vue'
 import GpsView from '@/views/GpsView.vue'
 import MapView from '@/views/MapView.vue'
+import TracksView from '@/views/TracksView.vue'
 import WaypointsView from '@/views/WaypointsView.vue'
 
 useTheme()
 
 const ui = useUiStore()
-const VIEWS = { gps: GpsView, waypoints: WaypointsView, map: MapView, converter: ConverterView, beaufort: BeaufortView } satisfies Record<ViewId, unknown>
+const VIEWS = { gps: GpsView, waypoints: WaypointsView, map: MapView, tracks: TracksView, converter: ConverterView, beaufort: BeaufortView } satisfies Record<ViewId, unknown>
 const current = computed(() => VIEWS[ui.view])
 const isMap = computed(() => ui.view === 'map')
 </script>

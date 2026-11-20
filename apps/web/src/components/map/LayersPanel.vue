@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Check, Download, Eye, EyeOff, FileUp, Grid3x3, Layers as LayersIcon, MessageSquareText, Pencil, Route as RouteIcon, Trash2, Wind, X } from '@lucide/vue'
+import { Check, Eye, EyeOff, FileUp, Grid3x3, Layers as LayersIcon, MessageSquareText, Pencil, Route as RouteIcon, Trash2, Wind, X } from '@lucide/vue'
 import type { BaseGroup, GraticuleMode, ImportedLayer } from '@gpsm/shared'
 import SegmentedControl, { type SegmentOption } from '@/components/ui/SegmentedControl.vue'
 import ToggleRow from '@/components/ui/ToggleRow.vue'
@@ -12,6 +12,7 @@ import { LayerImportError, useLayersStore } from '@/stores/layers'
 import { LAYER_NAME_MAX } from '@/logic/layerName'
 import { useMapStore } from '@/stores/map'
 import { useTracksStore } from '@/stores/tracks'
+import { useUiStore } from '@/stores/ui'
 import { useWindStore, type WindStyle } from '@/stores/wind'
 import { useToastStore } from '@/stores/toast'
 
@@ -24,6 +25,7 @@ const f = useFormat()
 const layers = useLayersStore()
 const wind = useWindStore()
 const tracks = useTracksStore()
+const ui = useUiStore()
 const mapStore = useMapStore()
 const gridOn = computed({
   get: () => mapStore.settings.graticule.show,
@@ -112,16 +114,9 @@ async function remove(l: ImportedLayer) {
     await layers.remove(l.id)
 }
 
-async function removeTrack(id: string, name: string) {
-  if (await confirm({ title: t('tracks.deleteTitle'), message: t('tracks.deleteMessage', { name }), confirmLabel: t('waypoints.delete'), tone: 'danger' })) await tracks.remove(id)
-}
-async function exportTrack(track: (typeof tracks.list)[number]) {
-  const r = await tracks.exportGpx(track)
-  if (r !== 'cancelled') toast.push(t(r === 'shared' ? 'export.shared' : 'export.downloaded', { name: track.name }), { tone: 'success' })
-}
-const duration = (t0: number, t1: number | null) => {
-  const m = Math.max(0, Math.round(((t1 ?? Date.now()) - t0) / 60_000))
-  return `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`
+function manageTracks() {
+  ui.close()
+  ui.go('tracks')
 }
 
 const featureCount = (l: ImportedLayer) => layers.importedParsed.get(l.id)?.features.length ?? 0
@@ -162,24 +157,8 @@ const featureCount = (l: ImportedLayer) => layers.importedParsed.get(l.id)?.feat
 
     <section class="panel-section">
       <h3 class="eyebrow flex items-center gap-1.5"><RouteIcon class="size-3.5" aria-hidden="true" />{{ t('tracks.title') }}</h3>
-      <p class="text-caption">{{ t('tracks.hint') }}</p>
-      <p v-if="!tracks.list.length" class="rounded-2xl border border-dashed border-line px-4 py-5 text-center text-sm text-secondary">{{ t('tracks.none') }}</p>
-      <ul v-else class="list">
-        <li v-for="tr in tracks.list" :key="tr.id" class="flex items-center gap-2 px-4 py-3">
-          <span class="flex min-w-0 flex-1 flex-col">
-            <span class="truncate text-sm font-semibold" :class="{ 'text-ink-subtle': !tr.visible }">{{ tr.name }}</span>
-            <span class="numeric text-xs text-ink-subtle">
-              <template v-if="tracks.recording?.id === tr.id">● {{ t('tracks.recording') }} · </template>{{ f.distance(tr.distanceNm) }} {{ t('units.nm') }} · {{ duration(tr.startedAt, tr.endedAt) }} · {{ t('tracks.points', tr.pointCount) }}
-            </span>
-          </span>
-          <button type="button" class="icon-btn" :aria-pressed="tr.visible" :aria-label="t(tr.visible ? 'layers.hideLayer' : 'layers.showLayer', { name: tr.name })" @click="tracks.setVisible(tr.id, !tr.visible)">
-            <Eye v-if="tr.visible" class="size-5 text-accent" />
-            <EyeOff v-else class="size-5" />
-          </button>
-          <button type="button" class="icon-btn" :disabled="tracks.recording?.id === tr.id" :aria-label="t('tracks.exportGpx', { name: tr.name })" :title="t('tracks.exportGpx', { name: tr.name })" @click="exportTrack(tr)"><Download class="size-5" /></button>
-          <button type="button" class="icon-btn text-stop" :disabled="tracks.recording?.id === tr.id" :aria-label="t('layers.deleteLayer', { name: tr.name })" @click="removeTrack(tr.id, tr.name)"><Trash2 class="size-5" /></button>
-        </li>
-      </ul>
+      <p class="text-caption">{{ t('tracks.layersHint', tracks.list.length) }}</p>
+      <button type="button" class="btn-secondary self-start" @click="manageTracks"><RouteIcon class="size-4" aria-hidden="true" />{{ t('tracks.manage') }}</button>
     </section>
 
     <section class="panel-section">

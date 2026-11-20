@@ -38,6 +38,7 @@ import { useGpsStore } from '@/stores/gps'
 import { useLayersStore } from '@/stores/layers'
 import { useMapStore } from '@/stores/map'
 import { useNavigationStore } from '@/stores/navigation'
+import { useTrackPlayerStore } from '@/stores/trackPlayer'
 import { useTracksStore } from '@/stores/tracks'
 import { useWaypointsStore } from '@/stores/waypoints'
 import { useWindStore } from '@/stores/wind'
@@ -62,6 +63,7 @@ const waypoints = useWaypointsStore()
 const layers = useLayersStore()
 const wind = useWindStore()
 const tracks = useTracksStore()
+const player = useTrackPlayerStore()
 
 const container = ref<HTMLDivElement | null>(null)
 const windCanvas = ref<HTMLCanvasElement | null>(null)
@@ -103,6 +105,18 @@ const vesselData = () => {
     geometry: { type: 'Point' as const, coordinates: toPos(c) },
     properties: { course: gps.courseDeg ?? 0, still: gps.courseDeg == null },
   }
+}
+/** Derrota en reproducción: lo recorrido (continuo) y lo que falta (punteado). */
+const playLinesData = () => {
+  const sp = player.split
+  if (!sp) return EMPTY
+  const line = (kind: string, c: [number, number][]) => ({ type: 'Feature' as const, properties: { kind }, geometry: { type: 'LineString' as const, coordinates: c } })
+  return { type: 'FeatureCollection' as const, features: [sp.rest.length >= 2 ? line('rest', sp.rest) : null, sp.done.length >= 2 ? line('done', sp.done) : null].filter((f) => f != null) }
+}
+const playVesselData = () => {
+  const p = player.position
+  if (!p || !player.track) return EMPTY
+  return { type: 'Feature' as const, geometry: { type: 'Point' as const, coordinates: [p.lon, p.lat] }, properties: { course: p.courseDeg } }
 }
 /** Cuadrícula: líneas y etiquetas de la vista actual. Las etiquetas van pegadas a los bordes izquierdo (paralelos) y superior (meridianos). */
 const graticuleData = () => {
@@ -203,6 +217,8 @@ function addOverlay(m: MapLibre) {
   m.addSource('measure', { type: 'geojson', data: measureData() })
   m.addSource('tracks', { type: 'geojson', data: tracks.drawn as never })
   m.addSource('vessel', { type: 'geojson', data: vesselData() })
+  m.addSource('trackplay', { type: 'geojson', data: playLinesData() })
+  m.addSource('trackplay-vessel', { type: 'geojson', data: playVesselData() })
 
   const halo = { 'text-halo-color': colors.canvas, 'text-halo-width': 1.6 }
   m.addLayer({
@@ -293,6 +309,37 @@ function addOverlay(m: MapLibre) {
     source: 'measure',
     filter: ['==', ['get', 'kind'], 'point'],
     paint: { 'circle-radius': 5, 'circle-color': colors.surface, 'circle-stroke-color': colors.ink, 'circle-stroke-width': 2.5 },
+  })
+  // Derrota en reproducción: lo que falta, punteado y más suave; lo recorrido, continuo; y el buque en su posición.
+  m.addLayer({ id: 'trackplay-casing', type: 'line', source: 'trackplay', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': colors.canvas, 'line-width': 6, 'line-opacity': 0.6 } })
+  m.addLayer({
+    id: 'trackplay-rest',
+    type: 'line',
+    source: 'trackplay',
+    filter: ['==', ['get', 'kind'], 'rest'],
+    layout: { 'line-join': 'round' },
+    paint: { 'line-color': colors.accent, 'line-width': 2.5, 'line-opacity': 0.75, 'line-dasharray': [2, 2] },
+  })
+  m.addLayer({
+    id: 'trackplay-done',
+    type: 'line',
+    source: 'trackplay',
+    filter: ['==', ['get', 'kind'], 'done'],
+    layout: { 'line-cap': 'round', 'line-join': 'round' },
+    paint: { 'line-color': colors.accent, 'line-width': 3.5 },
+  })
+  // Aro de contraste bajo el buque de la derrota: así no se pierde sobre su propia línea.
+  m.addLayer({
+    id: 'trackplay-halo',
+    type: 'circle',
+    source: 'trackplay-vessel',
+    paint: { 'circle-radius': 17, 'circle-color': colors.canvas, 'circle-opacity': 0.85, 'circle-stroke-color': colors.accent, 'circle-stroke-width': 2 },
+  })
+  m.addLayer({
+    id: 'trackplay-vessel',
+    type: 'symbol',
+    source: 'trackplay-vessel',
+    layout: { 'icon-image': 'vessel', 'icon-rotate': ['get', 'course'], 'icon-rotation-alignment': 'map', 'icon-allow-overlap': true, 'icon-ignore-placement': true },
   })
   m.addLayer({
     id: 'vessel',
@@ -429,11 +476,19 @@ onMounted(() => {
   mapStore.controller = {
     zoomBy: (d) => map?.easeTo({ zoom: map.getZoom() + d, duration: 250 }),
     flyTo: (p, zoom) => map?.easeTo({ center: [p.lon, p.lat], zoom: zoom ?? map.getZoom(), duration: 600 }),
+    fitTo: (pts) => {
+      if (!map || pts.length < 2) return
+      const b = pts.reduce((a, p) => ({ w: Math.min(a.w, p.lon), s: Math.min(a.s, p.lat), e: Math.max(a.e, p.lon), n: Math.max(a.n, p.lat) }), { w: 180, s: 90, e: -180, n: -90 })
+      map.fitBounds([[b.w, b.s], [b.e, b.n]], { padding: { top: 90, bottom: 190, left: 40, right: 70 }, duration: 700, maxZoom: 14 })
+    },
     getBounds: () => {
       const b = map!.getBounds()
       return { west: b.getWest(), south: b.getSouth(), east: b.getEast(), north: b.getNorth() }
     },
   }
+
+  // Una derrota activa antes de abrir el mapa (se eligió en la pestaña Derrotas): se encuadra al montarse.
+  if (player.track) mapStore.controller?.fitTo(player.points)
 
   // Capa de viento: el canvas va encima del mapa y no recibe toques (el mapa sigue siendo tocable).
   if (windCanvas.value) {
@@ -548,7 +603,18 @@ watch(
     set('waypoints-labels', data)
   },
 )
+watch(() => player.track?.id, (id) => id && mapStore.controller?.fitTo(player.points))
 watch(() => tracks.drawn, (d) => set('tracks', d))
+watch(
+  () => [player.split, player.position, player.track] as const,
+  () => {
+    set('trackplay', playLinesData())
+    set('trackplay-vessel', playVesselData())
+    const p = player.position
+    // El mapa acompaña al buque mientras reproduce (sin animar: la posición cambia unas 15 veces por segundo).
+    if (p && map && player.playing && player.follow) map.jumpTo({ center: [p.lon, p.lat] })
+  },
+)
 watch(() => [mapStore.measurePoints, mapStore.measuring] as const, () => set('measure', measureData()))
 watch(
   () => [layers.renderLayers, layers.showLabels, layers.imported] as const,

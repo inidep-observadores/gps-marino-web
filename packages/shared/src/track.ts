@@ -72,6 +72,31 @@ export function trackStats(points: readonly TrackPoint[]): TrackStats {
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 const iso = (ms: number) => new Date(ms).toISOString().replace(/\.\d{3}Z$/, 'Z')
 
+/**
+ * GeoJSON con toda la información de la derrota: una línea más las series de hora (ISO), velocidad (nudos) y rumbo (grados)
+ * de cada punto, en el formato que `parseTrackGeoJson` lee de vuelta (y que otros programas ignoran sin problema).
+ */
+export function trackToGeoJson(name: string, points: readonly TrackPoint[]): string {
+  const round = (v: number | null, d: number) => (v == null ? null : Number(v.toFixed(d)))
+  return JSON.stringify({
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        properties: {
+          name,
+          fechaInicio: points.length ? iso(points[0]!.t) : null,
+          fechaFin: points.length ? iso(points[points.length - 1]!.t) : null,
+          coordTimes: points.map((p) => iso(p.t)),
+          speeds: points.map((p) => round(p.speedKn, 2)),
+          courses: points.map((p) => round(p.courseDeg, 0)),
+        },
+        geometry: { type: 'LineString', coordinates: points.map((p) => [Number(p.lon.toFixed(7)), Number(p.lat.toFixed(7))]) },
+      },
+    ],
+  })
+}
+
 /** GPX 1.1 con un `<trk>` de un solo segmento: lo abren los plotters, Google Earth, OpenCPN, etc. */
 export function trackToGpx(name: string, points: readonly TrackPoint[]): string {
   const pts = points

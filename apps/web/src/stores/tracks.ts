@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia'
 import { computed, ref, shallowRef, watch } from 'vue'
-import { DEFAULT_RECORD_RULES, shouldRecord, trackToGpx, trackStats, type TrackPoint } from '@gpsm/shared'
+import { DEFAULT_RECORD_RULES, shouldRecord, trackToGeoJson, trackToGpx, trackStats, type TrackPoint } from '@gpsm/shared'
 import { i18n } from '@/i18n'
 import { formatNumber } from '@/i18n/numbers'
 import type { Track } from '@/repositories/tracks'
 import { fileStamp, makeFile, shareOrDownload, MIME } from '@/services/files'
+import { readTrackFile, trackNameFromFile } from '@/services/trackFiles'
 import { useDatabaseStore } from './database'
 import { useGpsStore } from './gps'
 import { useToastStore } from './toast'
@@ -30,6 +31,9 @@ export const useTracksStore = defineStore('tracks', () => {
   let lastFlush = 0
   /** Puntos de las derrotas guardadas que se muestran en el mapa. */
   const saved = shallowRef(new Map<string, TrackPoint[]>())
+
+  /** Derrota que se está reproduciendo en el mapa (el reproductor la dibuja aparte, por eso no sale en `drawn`). */
+  const playingId = ref<string | null>(null)
 
   const repo = async () => (await database.ready()).tracks
 
@@ -137,15 +141,48 @@ export const useTracksStore = defineStore('tracks', () => {
     await loadVisible()
   }
 
+  /** Puntos de una derrota guardada (para reproducirla). */
+  async function pointsOf(id: string): Promise<TrackPoint[]> {
+    return (await repo()).points(id)
+  }
+
+  /**
+   * Importa las derrotas de un archivo (GeoJSON, GPX o ZIP). Quedan guardadas y ocultas; el mapa las muestra al activarlas
+   * o al reproducirlas. Devuelve las creadas y si traían horas propias.
+   */
+  async function importFile(file: File): Promise<{ tracks: Track[]; timed: boolean }> {
+    const found = await readTrackFile(file)
+    const r = await repo()
+    const created: Track[] = []
+    for (const f of found) {
+      const name = f.name ?? trackNameFromFile(f.fileName)
+      const first = f.points[0]!
+      const t = await r.create(name, first.t)
+      await r.append(t.id, f.points)
+      await r.finish(t.id, f.points[f.points.length - 1]!.t)
+      await r.setVisible(t.id, false)
+      created.push(t)
+    }
+    list.value = await r.list()
+    return { tracks: list.value.filter((t) => created.some((c) => c.id === t.id)), timed: found.every((f) => f.timed) }
+  }
+
   async function exportGpx(track: Track): Promise<'shared' | 'cancelled' | 'downloaded'> {
     const pts = await (await repo()).points(track.id)
     const file = makeFile(trackToGpx(track.name, pts), `Derrota-${fileStamp(new Date(track.startedAt))}.gpx`, MIME.gpx)
     return shareOrDownload(file, track.name)
   }
 
+  /** GeoJSON con hora, velocidad y rumbo de cada punto (se puede volver a importar sin perder nada). */
+  async function exportGeoJson(track: Track): Promise<'shared' | 'cancelled' | 'downloaded'> {
+    const pts = await (await repo()).points(track.id)
+    const file = makeFile(trackToGeoJson(track.name, pts), `Derrota-${fileStamp(new Date(track.startedAt))}.geojson`, MIME.json)
+    return shareOrDownload(file, track.name)
+  }
+
   /** Líneas para el mapa: las guardadas visibles y la que se está grabando. */
   const drawn = computed(() => {
-    const features = [...saved.value.entries(), ...(recording.value ? [[recording.value.id, activePoints.value] as const] : [])]
+    const features = [...[...saved.value.entries()].filter(([id]) => id !== playingId.value), ...(recording.value ? [[recording.value.id, activePoints.value] as const] : [])]
       .filter(([, pts]) => pts.length >= 2)
       .map(([id, pts]) => ({
         type: 'Feature' as const,
@@ -157,5 +194,5 @@ export const useTracksStore = defineStore('tracks', () => {
 
   const activeStats = computed(() => trackStats(activePoints.value))
 
-  return { list, recording, activePoints, activeStats, drawn, load, start, stop, setVisible, rename, remove, exportGpx }
+  return { list, recording, playingId, activePoints, activeStats, drawn, load, start, stop, setVisible, rename, remove, exportGpx, importFile, pointsOf, exportGeoJson }
 })
