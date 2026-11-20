@@ -482,7 +482,6 @@ export default {
       position: 'Posición en la derrota',
       follow: 'Seguir al buque',
       unfollow: 'No seguir al buque',
-      distance: '{done} de {total} {unit}',
       timeline: 'Hora en la derrota',
     },
   },

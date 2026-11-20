@@ -63,6 +63,14 @@ describe('formatos náuticos (iguales a la app Flutter)', () => {
     expect(formatLon(undefined)).toBe("---° --,---' -")
   })
 
+  it('formato compacto: minutos con 2 decimales, sin marca ni espacio', () => {
+    const c = { decimals: 2, minuteMark: '', degreeGap: '' }
+    expect(formatLat(-42.1242917, c)).toBe('42°07,46 S')
+    expect(formatLon(-59.9780583, c)).toBe('059°58,68 O')
+    expect(formatLon(-59.9780583, { ...c, west: 'W', decimal: '.' })).toBe('059°58.68 W')
+    expect(formatLat(-(37 + 59.999 / 60), c)).toBe('38°00,00 S')
+  })
+
   it('redondea con acarreo: 59,9996 minutos pasan al grado siguiente', () => {
     expect(formatLat(-(37 + 59.9996 / 60))).toBe("38° 00,000' S")
     expect(toDegMin(-(37 + 59.9996 / 60))).toEqual({ deg: 38, min: 0, negative: true })

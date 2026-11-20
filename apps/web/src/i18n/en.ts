@@ -481,7 +481,6 @@ const en: Messages<typeof es> = {
       position: 'Position in the track',
       follow: 'Follow the vessel',
       unfollow: 'Stop following the vessel',
-      distance: '{done} of {total} {unit}',
       timeline: 'Time in the track',
     },
   },

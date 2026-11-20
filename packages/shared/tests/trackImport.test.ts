@@ -199,6 +199,10 @@ describe('reproducción', () => {
     expect(positionAt(pts, cum, 99 * H)!.distanceNm).toBeCloseTo(2, 2)
     expect(positionAt([], [], 0)).toBeNull()
   })
+  it('usa el rumbo registrado cuando lo hay', () => {
+    const rec = pts.map((p) => ({ ...p, courseDeg: 200 }))
+    expect(positionAt(rec, cum, 0.5 * H)!.courseDeg).toBe(200)
+  })
   it('parado: conserva el último rumbo y no salta', () => {
     const still: TrackPoint[] = [...pts, { ...pts[2]!, t: 3 * H }]
     const p = positionAt(still, cumulativeNm(still), 2.5 * H)!

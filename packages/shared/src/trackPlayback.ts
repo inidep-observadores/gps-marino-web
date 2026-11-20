@@ -18,7 +18,7 @@ export function defaultPlaybackSpeed(durationMs: number): number {
 export interface PlaybackPosition {
   lat: number
   lon: number
-  /** Rumbo del tramo en curso (°). */
+  /** Rumbo (°): el registrado en la derrota o, si no lo trae, el del tramo en curso. */
   courseDeg: number
   /** Índice del último punto ya alcanzado. */
   index: number
@@ -87,7 +87,7 @@ export function positionAt(points: readonly TrackPoint[], cum: readonly number[]
   return {
     lat,
     lon,
-    courseDeg: courseAt(points, i),
+    courseDeg: a.courseDeg ?? courseAt(points, i),
     index: i,
     distanceNm: (cum[i] ?? 0) + segNm * f,
     speedKn: a.speedKn ?? computed,

@@ -10,6 +10,12 @@ export interface CoordFormatOptions {
   west?: string
   /** Separador decimal de los minutos (la app original usa coma). */
   decimal?: string
+  /** Decimales de los minutos (3 por defecto; 2 en los lectores compactos, p. ej. el reproductor de derrotas). */
+  decimals?: number
+  /** Marca después de los minutos (`'` por defecto; vacía en el formato compacto `42° 07,46 S`). */
+  minuteMark?: string
+  /** Espacio entre los grados y los minutos (un espacio por defecto; vacío en el formato compacto `42°07,46 S`). */
+  degreeGap?: string
 }
 
 export interface DegMin {
@@ -37,9 +43,10 @@ export function fromDegMin(deg: number, min: number, negative: boolean): number 
 
 /** `degDigits`: como en cualquier GPS, los grados se rellenan con ceros: 2 cifras en latitud (`08°`) y 3 en longitud (`057°`). */
 function formatCoord(value: number, pos: string, neg: string, opts: CoordFormatOptions, degDigits: number): string {
-  const { deg, min, negative } = toDegMin(value)
-  const [mi, md] = min.toFixed(3).split('.') as [string, string]
-  return `${String(deg).padStart(degDigits, '0')}° ${mi.padStart(2, '0')}${opts.decimal ?? ','}${md}' ${negative ? neg : pos}`
+  const decimals = opts.decimals ?? 3
+  const { deg, min, negative } = toDegMin(value, decimals)
+  const [mi, md] = min.toFixed(decimals).split('.') as [string, string]
+  return `${String(deg).padStart(degDigits, '0')}°${opts.degreeGap ?? ' '}${mi.padStart(2, '0')}${opts.decimal ?? ','}${md}${opts.minuteMark ?? "'"} ${negative ? neg : pos}`
 }
 
 export const EMPTY_LAT = "--° --,---' -"

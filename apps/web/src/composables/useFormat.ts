@@ -14,6 +14,9 @@ export function useFormat() {
   return {
     lat: (v: number | null | undefined) => (v == null ? EMPTY_LAT.replace(',', decimal()) : formatLat(v, { decimal: decimal() })),
     lon: (v: number | null | undefined) => (v == null ? EMPTY_LON.replace(',', decimal()) : formatLon(v, { west: t('units.west'), decimal: decimal() })),
+    /** Compactas para el reproductor de derrotas: grados y minutos con 2 decimales y sin marca ni espacio tras los grados (`42°07,46 S`). */
+    latCompact: (v: number | null | undefined) => (v == null ? '--°--,-- -' : formatLat(v, { decimal: decimal(), decimals: 2, minuteMark: '', degreeGap: '' })),
+    lonCompact: (v: number | null | undefined) => (v == null ? '---°--,-- -' : formatLon(v, { west: t('units.west'), decimal: decimal(), decimals: 2, minuteMark: '', degreeGap: '' })),
     bearing: (v: number | null | undefined) => formatBearing(v),
     /** Nudos con un decimal (sin unidad). */
     speed: (kn: number | null | undefined) => (kn == null ? '--' : num(kn, 1)),
