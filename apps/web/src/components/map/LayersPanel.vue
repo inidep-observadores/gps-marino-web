@@ -135,16 +135,6 @@ const featureCount = (l: ImportedLayer) => layers.importedParsed.get(l.id)?.feat
     </section>
 
     <section class="panel-section">
-      <h3 class="eyebrow flex items-center gap-1.5"><Grid3x3 class="size-3.5" aria-hidden="true" />{{ t('layers.grid') }}</h3>
-      <ToggleRow v-model="gridOn" :label="t('layers.gridShow')" :hint="t('layers.gridHint')" />
-      <!-- Resolución: solo con la cuadrícula visible. -->
-      <template v-if="gridOn">
-        <SegmentedControl v-model="gridMode" :options="gridModeOptions" :label="t('layers.gridResolution')" />
-        <p class="text-caption">{{ t(gridMode === 'adaptive' ? 'layers.gridAdaptiveHint' : 'layers.gridFixedHint') }}</p>
-      </template>
-    </section>
-
-    <section class="panel-section">
       <h3 class="eyebrow flex items-center gap-1.5"><Wind class="size-3.5" aria-hidden="true" />{{ t('layers.weather') }}</h3>
       <ToggleRow v-model="windOn" :label="t('layers.wind')" :hint="t('layers.windHint')" />
       <!-- Cómo dibujar el viento: solo con la capa encendida. -->
@@ -156,9 +146,19 @@ const featureCount = (l: ImportedLayer) => layers.importedParsed.get(l.id)?.feat
     </section>
 
     <section class="panel-section">
+      <h3 class="eyebrow flex items-center gap-1.5"><Grid3x3 class="size-3.5" aria-hidden="true" />{{ t('layers.grid') }}</h3>
+      <ToggleRow v-model="gridOn" :label="t('layers.gridShow')" :hint="t('layers.gridHint')" />
+      <!-- Resolución: solo con la cuadrícula visible. -->
+      <template v-if="gridOn">
+        <SegmentedControl v-model="gridMode" :options="gridModeOptions" :label="t('layers.gridResolution')" />
+        <p class="text-caption">{{ t(gridMode === 'adaptive' ? 'layers.gridAdaptiveHint' : 'layers.gridFixedHint') }}</p>
+      </template>
+    </section>
+
+    <section class="panel-section">
       <h3 class="eyebrow flex items-center gap-1.5"><RouteIcon class="size-3.5" aria-hidden="true" />{{ t('tracks.title') }}</h3>
-      <p class="text-caption">{{ t('tracks.layersHint', tracks.list.length) }}</p>
-      <button type="button" class="btn-secondary self-start" @click="manageTracks"><RouteIcon class="size-4" aria-hidden="true" />{{ t('tracks.manage') }}</button>
+      <p class="text-caption">{{ t('layers.tracksHint', tracks.list.length) }}</p>
+      <button type="button" class="btn-secondary self-start" @click="manageTracks"><RouteIcon class="size-4" aria-hidden="true" />{{ t('layers.manageTracks') }}</button>
     </section>
 
     <section class="panel-section">
@@ -167,7 +167,7 @@ const featureCount = (l: ImportedLayer) => layers.importedParsed.get(l.id)?.feat
         <button type="button" class="btn-secondary h-9" :disabled="busy" @click="fileInput?.click()">
           <FileUp class="size-4" aria-hidden="true" />{{ t('layers.import') }}
         </button>
-        <!-- Sin `accept`: en Android filtra mal .gpx/.geojson y los deja grises. -->
+        <!-- `accept` con extensiones y application/*, text/*: sin él Android abre el selector de fotos. -->
         <input ref="fileInput" type="file" accept=".geojson,.json,.gpx,.zip,.dbf,application/*,text/*" class="sr-only" tabindex="-1" aria-hidden="true" @change="onFile" />
       </div>
       <p class="text-caption">{{ t('layers.importHint') }}</p>
