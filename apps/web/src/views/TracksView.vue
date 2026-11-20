@@ -131,7 +131,7 @@ const sub = computed(() => (tracks.list.length ? t('tracks.count', tracks.list.l
             />
             <span v-if="renameError" class="text-xs text-stop">{{ t('tracks.nameEmpty') }}</span>
           </div>
-          <span v-else class="flex min-w-0 flex-1 flex-col">
+          <span v-else class="flex min-w-0 flex-1 cursor-pointer flex-col" @click="tr.pointCount >= 2 && tracks.recording?.id !== tr.id && play(tr)">
             <span class="flex min-w-0 items-center gap-2">
               <span class="h-1.5 w-5 shrink-0 rounded-full" :style="{ background: `var(--ds-track-${trackColorIndex(tr.id, tr.color)})` }" aria-hidden="true"></span>
               <span class="truncate text-sm font-semibold" :class="{ 'text-ink-subtle': !tr.visible && player.track?.id !== tr.id }">{{ tr.name }}</span>

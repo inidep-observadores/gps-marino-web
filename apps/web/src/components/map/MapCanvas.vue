@@ -467,11 +467,23 @@ onMounted(() => {
       mapStore.selected = { kind: 'waypoint', id: wpId }
       return
     }
+    // Una derrota guardada: tocarla activa su reproductor (el mapa no salta al buque: se ve donde se tocó).
+    const tr = map.getLayer('tracks') ? map.queryRenderedFeatures(box, { layers: ['tracks'] }).find((f) => !f.properties?.active) : undefined
+    const trId = tr?.properties?.id as string | undefined
+    if (trId) {
+      mapStore.selected = null
+      void player.open(trId).then((ok) => {
+        if (ok) player.follow = false
+      })
+      return
+    }
     const ids = tappableLayerIds(map, layers.renderLayers)
     const hit = ids.length ? map.queryRenderedFeatures(box, { layers: ids })[0] : undefined
     const featureId = hit?.properties?._id as string | undefined
     mapStore.selected = hit && featureId ? { kind: 'feature', sourceId: hit.source, featureId } : null
   })
+  map.on('mouseenter', 'tracks', () => map && (map.getCanvas().style.cursor = 'pointer'))
+  map.on('mouseleave', 'tracks', () => map && (map.getCanvas().style.cursor = ''))
   map.on('mouseenter', 'waypoints', () => map && (map.getCanvas().style.cursor = 'pointer'))
   map.on('mouseleave', 'waypoints', () => map && (map.getCanvas().style.cursor = ''))
 
