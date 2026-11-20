@@ -81,7 +81,7 @@ export const useLayersStore = defineStore('layers', () => {
   const database = useDatabaseStore()
 
   const baseVisible = ref<Record<BaseGroup, boolean>>({ ...DEFAULT_BASE_VISIBLE })
-  const showLabels = ref(false)
+  const showLabels = ref(true)
   const imported = ref<ImportedLayer[]>([])
   const baseParsed = shallowRef(new Map<BaseGroup, ParsedLayer>())
   const importedParsed = shallowRef(new Map<string, ParsedLayer>())
@@ -90,7 +90,7 @@ export const useLayersStore = defineStore('layers', () => {
   async function load() {
     const repos = await database.ready()
     baseVisible.value = { ...baseVisible.value, ...(await repos.settings.get<Partial<Record<BaseGroup, boolean>>>(BASE_KEY, {})) }
-    showLabels.value = await repos.settings.get(LABELS_KEY, false)
+    showLabels.value = await repos.settings.get(LABELS_KEY, true)
     imported.value = await repos.layers.list()
     const parsed = new Map<string, ParsedLayer>()
     imported.value.forEach((l, i) => {

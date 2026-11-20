@@ -127,7 +127,7 @@ apps/web/
     `window.__map` es la instancia de MapLibre.
 - **Capas (fase 4):** grupos base en `apps/web/public/layers/` (copiados de `assets/geojson` de Flutter; se PRECACHEAN y
   sirven de mapa de respaldo sin conexión). Visibilidad por grupo en `settings` (`layers.base`, claves de Flutter) y
-  etiquetas de áreas en `layers.labels`. Importadas: GeoJSON/GPX/ZIP (primer archivo válido), contenido en SQLite,
+  etiquetas de áreas en `layers.labels` (encendidas por defecto; letra de 14 px en z4 a 26 px en z10, con halo, centradas con polylabel y sin ocultarse por solapamiento). Importadas: GeoJSON/GPX/ZIP (primer archivo válido), contenido en SQLite,
   nombre repetido → confirmar sobrescribir. El nombre se puede cambiar tocándolo en la lista de Capas (edición en la propia fila; `layers.rename` + `logic/layerName.ts`: no vacío y distinto de las demás capas, sin distinguir mayúsculas). Estilos de Flutter: áreas generales sin relleno, demás grupos base al 15 %,
   importadas lo de simplestyle o 25 %; veda punteada. Se parsea con color por defecto VACÍO y cada elemento lleva `_tok`
   (token de color): MapLibre resuelve el color con el tema actual (`colorExpr` en `mapLayers.ts`).

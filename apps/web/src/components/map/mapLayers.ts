@@ -109,8 +109,8 @@ function addRenderLayer(m: MapLibre, r: RenderLayer, opts: LayerRenderOptions, b
       id: `${s}-label`,
       type: 'symbol',
       source: `${s}-labels`,
-      layout: { 'text-field': ['get', 'text'], 'text-font': LABEL_FONT_BOLD, 'text-size': ['interpolate', ['linear'], ['zoom'], 4, 11, 9, 16], 'text-allow-overlap': false },
-      paint: { 'text-color': c.ink, 'text-halo-color': c.canvas, 'text-halo-width': 2 },
+      layout: { 'text-field': ['get', 'text'], 'text-font': LABEL_FONT_BOLD, 'text-size': ['interpolate', ['linear'], ['zoom'], 4, 14, 7, 20, 10, 26], 'text-allow-overlap': true, 'text-padding': 2 },
+      paint: { 'text-color': c.ink, 'text-halo-color': c.canvas, 'text-halo-width': 2.5, 'text-halo-blur': 0.5 },
     },
     before,
   )
